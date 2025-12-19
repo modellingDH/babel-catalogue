@@ -278,12 +278,12 @@ export const useBookStore = create<BookState>((set, get) => ({
   /**
    * Flip multiple pages with animation
    */
-  flipPages: (count, direction, duration = 50) => {
+  flipPages: (count, direction, duration = 200) => {
     let flipped = 0;
     
     const flipNext = () => {
       if (flipped >= count) {
-        console.log('Finished flipping', count, 'pages', direction);
+        console.log('✅ Finished flipping', count, 'pages', direction);
         return;
       }
       
@@ -299,22 +299,25 @@ export const useBookStore = create<BookState>((set, get) => ({
         newPage = Math.max(currentPage - 1, 0);
       }
       
-      console.log(`Flip ${flipped + 1}/${count}:`, currentPage, '→', newPage);
+      console.log(`📄 Flip ${flipped + 1}/${count}: page ${currentPage} → ${newPage} (total: ${pageCount})`);
       
       // Only update if page actually changed
       if (newPage !== currentPage) {
         set({ currentPage: newPage });
         flipped++;
         
+        // Wait longer for animation to be visible
         if (flipped < count) {
           setTimeout(flipNext, duration);
         }
       } else {
         // Can't flip further (at boundary)
-        console.log('Reached boundary at page', currentPage);
+        console.log('⚠️ Reached boundary at page', currentPage);
       }
     };
     
+    // Start the flip sequence
+    console.log('▶️ Starting page flip:', count, 'pages', direction, 'from page', get().currentPage);
     flipNext();
   },
   

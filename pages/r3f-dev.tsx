@@ -203,8 +203,8 @@ export default function R3FDevInterface() {
   useControls('📖 Animated Actions', {
     'Open Book': button(() => openBook(1000), { label: '📖 Open (1s)' }),
     'Close Book': button(() => closeBook(1000), { label: '📕 Close (1s)' }),
-    'Flip 5 Forward': button(() => flipPages(5, 'forward', 50), { label: '→→ Flip 5 Pages' }),
-    'Flip 5 Backward': button(() => flipPages(5, 'backward', 50), { label: '←← Flip 5 Pages' }),
+    'Flip 5 Forward': button(() => flipPages(5, 'forward', 200), { label: '→→ Flip 5 Pages' }),
+    'Flip 5 Backward': button(() => flipPages(5, 'backward', 200), { label: '←← Flip 5 Pages' }),
   });
   
   // Emotions (from README concept)
