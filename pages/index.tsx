@@ -7,13 +7,13 @@ import { Leva, useControls, button } from 'leva';
 import { Stats, PerformanceMonitor } from '@react-three/drei';
 import { useEffect } from 'react';
 import Head from 'next/head';
-import Link from 'next/link';
 import { Scene } from '../components/Book/Scene';
 import { Book } from '../components/Book/Book';
 import { useBookStore } from '../stores/bookStore';
 
 export default function R3FDevInterface() {
-  // Get store actions
+  // Get store state and actions
+  const bookState = useBookStore();
   const {
     setPageCount,
     setCurrentPage,
@@ -37,8 +37,6 @@ export default function R3FDevInterface() {
     setFrontCoverText,
     setBackCoverText,
     setCoverTextColor,
-    setCoverOutlineColor,
-    setCoverOutlineWidth,
     setParticlesEnabled,
     setParticleIntensity,
     setDebug,
@@ -171,19 +169,6 @@ export default function R3FDevInterface() {
       label: 'Text Color',
       onChange: (v) => setCoverTextColor(v)
     },
-    coverOutlineColor: {
-      value: '#c9a876',
-      label: 'Outline Color',
-      onChange: (v) => setCoverOutlineColor(v)
-    },
-    coverOutlineWidth: {
-      value: 3,
-      min: 0,
-      max: 10,
-      step: 0.5,
-      label: 'Outline Width',
-      onChange: (v) => setCoverOutlineWidth(v)
-    },
     
     frontCoverText: {
       value: '',
@@ -304,17 +289,6 @@ export default function R3FDevInterface() {
         display: 'flex',
         gap: '10px'
       }}>
-        <Link href="/dev" style={{
-          padding: '8px 16px',
-          background: 'rgba(0,0,0,0.8)',
-          color: '#00ffcc',
-          textDecoration: 'none',
-          borderRadius: '4px',
-          fontFamily: 'monospace',
-          fontSize: '12px'
-        }}>
-          ← Old Interface
-        </Link>
         <div style={{
           padding: '8px 16px',
           background: 'rgba(0,0,0,0.8)',
@@ -324,8 +298,52 @@ export default function R3FDevInterface() {
           fontSize: '12px',
           fontWeight: 'bold'
         }}>
-          R3F Interface
+          📖 Babel Catalogue
         </div>
+      </div>
+      
+      {/* Configuration JSON Display */}
+      <div style={{
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        maxWidth: '400px',
+        maxHeight: '300px',
+        overflow: 'auto',
+        padding: '16px',
+        background: 'rgba(0,0,0,0.9)',
+        color: '#00ffcc',
+        borderRadius: '8px',
+        fontFamily: 'monospace',
+        fontSize: '11px',
+        border: '1px solid #00ffcc',
+        zIndex: 1000
+      }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '8px', fontSize: '13px' }}>
+          📋 Configuration JSON
+        </div>
+        <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+          {JSON.stringify({
+            pageCount: bookState.pageCount,
+            currentPage: bookState.currentPage,
+            dimensions: bookState.dimensions,
+            spineRotation: bookState.spineRotation,
+            tilt: bookState.tilt,
+            scale: bookState.scale,
+            frontHinge: bookState.frontHinge,
+            backHinge: bookState.backHinge,
+            pageOpacity: bookState.pageOpacity,
+            pageColor: bookState.pageColor,
+            glowIntensity: bookState.glowIntensity,
+            coverColor: bookState.coverColor,
+            coverOpacity: bookState.coverOpacity,
+            frontCoverText: bookState.frontCoverText,
+            backCoverText: bookState.backCoverText,
+            coverTextColor: bookState.coverTextColor,
+            particlesEnabled: bookState.particlesEnabled,
+            particleIntensity: bookState.particleIntensity
+          }, null, 2)}
+        </pre>
       </div>
       
       {/* 3D Canvas */}
