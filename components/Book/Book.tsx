@@ -174,10 +174,10 @@ export function Book() {
       {testPageFlipAngle > 0 && (
         <group position={[spineWidth / 2, 0, 0]}>
           <mesh 
-            position={[pageWidth / 2, 0, 0]} 
+            position={[dimensions.width / 2, 0, 0]} 
             rotation={[0, -(testPageFlipAngle * Math.PI / 180), 0]}
           >
-            <planeGeometry args={[pageWidth, pageHeight]} />
+            <planeGeometry args={[dimensions.width, dimensions.height]} />
             <meshStandardMaterial
               color="#ff0000"
               transparent
