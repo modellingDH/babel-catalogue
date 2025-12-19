@@ -145,15 +145,19 @@ export const useBookStore = create<BookState>((set, get) => ({
   },
   
   flipPage: (direction) => {
-    const { currentPage, pageCount } = get();
+    const state = get();
+    const { currentPage, pageCount } = state;
+    
     if (direction === 'forward') {
       // Flip forward (increase current page)
-      const newPage = (currentPage + 1) % pageCount;
+      const newPage = Math.min(currentPage + 1, pageCount - 1);
       set({ currentPage: newPage });
+      console.log('Flip forward:', currentPage, '→', newPage);
     } else {
       // Flip backward (decrease current page)
-      const newPage = ((currentPage - 1) + pageCount) % pageCount;
+      const newPage = Math.max(currentPage - 1, 0);
       set({ currentPage: newPage });
+      console.log('Flip backward:', currentPage, '→', newPage);
     }
   },
   
@@ -202,7 +206,7 @@ export const useBookStore = create<BookState>((set, get) => ({
    */
   openBook: (duration = 1000) => {
     const current = get();
-    const targetAngle = Math.PI * 0.6; // ~108 degrees (realistic book open angle)
+    const targetAngle = Math.PI * 0.4; // ~72 degrees (realistic book open angle)
     
     animateValue(
       current.frontHinge,
@@ -278,23 +282,36 @@ export const useBookStore = create<BookState>((set, get) => ({
     let flipped = 0;
     
     const flipNext = () => {
-      if (flipped >= count) return;
-      
-      // Get fresh state each time
-      const { currentPage, pageCount } = get();
-      
-      if (direction === 'forward') {
-        const newPage = (currentPage + 1) % pageCount;
-        set({ currentPage: newPage });
-      } else {
-        const newPage = ((currentPage - 1) + pageCount) % pageCount;
-        set({ currentPage: newPage });
+      if (flipped >= count) {
+        console.log('Finished flipping', count, 'pages', direction);
+        return;
       }
       
-      flipped++;
+      // Get fresh state each time
+      const state = get();
+      const { currentPage, pageCount } = state;
       
-      if (flipped < count) {
-        setTimeout(flipNext, duration);
+      let newPage: number;
+      
+      if (direction === 'forward') {
+        newPage = Math.min(currentPage + 1, pageCount - 1);
+      } else {
+        newPage = Math.max(currentPage - 1, 0);
+      }
+      
+      console.log(`Flip ${flipped + 1}/${count}:`, currentPage, '→', newPage);
+      
+      // Only update if page actually changed
+      if (newPage !== currentPage) {
+        set({ currentPage: newPage });
+        flipped++;
+        
+        if (flipped < count) {
+          setTimeout(flipNext, duration);
+        }
+      } else {
+        // Can't flip further (at boundary)
+        console.log('Reached boundary at page', currentPage);
       }
     };
     
@@ -310,19 +327,19 @@ export const useBookStore = create<BookState>((set, get) => ({
     switch (emotion) {
       case 'focus':
         // Bright pulsing of pages (high confidence, active thinking)
-        // Create a pulsing effect by animating glow up and down
+        // Slow, bright pulses (same frequency as drift)
         let pulseCycles = 0;
         const maxPulses = 5;
-        const pulseDuration = 400;
+        const pulseDuration = 1200; // Same slow duration as drift
         
         const pulse = () => {
           if (pulseCycles >= maxPulses) {
             // End with bright glow
-            animateValue(get().glowIntensity, 1.2, pulseDuration, (v) => set({ glowIntensity: v }), easeInOutCubic);
+            animateValue(get().glowIntensity, 1.2, pulseDuration / 2, (v) => set({ glowIntensity: v }), easeInOutCubic);
             return;
           }
           
-          // Up
+          // Up to bright
           animateValue(get().glowIntensity, 1.8, pulseDuration / 2, (v) => set({ glowIntensity: v }), easeInOutCubic);
           
           setTimeout(() => {
@@ -341,15 +358,15 @@ export const useBookStore = create<BookState>((set, get) => ({
         
       case 'drift':
         // Dimming pulsing of pages (daydreaming, low activity)
-        // Slow, dim pulses
+        // Slow, dim pulses (same frequency as focus)
         let dimPulseCycles = 0;
-        const maxDimPulses = 3;
-        const dimPulseDuration = 1000;
+        const maxDimPulses = 5;
+        const dimPulseDuration = 1200; // Same slow duration as focus
         
         const dimPulse = () => {
           if (dimPulseCycles >= maxDimPulses) {
             // End very dim
-            animateValue(get().glowIntensity, 0.1, dimPulseDuration, (v) => set({ glowIntensity: v }), easeInOutCubic);
+            animateValue(get().glowIntensity, 0.1, dimPulseDuration / 2, (v) => set({ glowIntensity: v }), easeInOutCubic);
             return;
           }
           
