@@ -1,9 +1,10 @@
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
-import url from 'url';
+import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const PORT = process.env.PORT || 3000;
 
 const mimeTypes = {
@@ -21,8 +22,8 @@ const mimeTypes = {
 };
 
 const server = http.createServer((req, res) => {
-  const parsedUrl = url.parse(req.url);
-  let pathname = `${__dirname}${parsedUrl.pathname}`;
+  const parsedUrl = new URL(req.url, 'http://localhost');
+  let pathname = path.join(__dirname, decodeURIComponent(parsedUrl.pathname));
 
   // Default to index.html for root or directory requests
   if (parsedUrl.pathname === '/' || parsedUrl.pathname === '') {

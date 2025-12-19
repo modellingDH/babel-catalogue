@@ -2,85 +2,238 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>The Babel Catalogue - Sonic Controller v6.0</title>
+    <title>Babel Catalogue - Precision Fix</title>
     <style>
-        body { margin: 0; background: #050505; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
-        #ui { position: absolute; top: 20px; left: 20px; z-index: 100; background: rgba(10,10,10,0.95); padding: 24px; border: 1px solid #2a2a2a; width: 280px; border-radius: 8px; backdrop-filter: blur(15px); max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 3px; border-bottom: 1px solid #2a2a2a; padding-bottom: 12px; margin: 0 0 18px 0; color: #666; }
-        .group { margin-bottom: 18px; }
-        label { display: block; font-size: 9px; text-transform: uppercase; color: #555; margin-bottom: 6px; letter-spacing: 1px; }
-        button { width: 100%; padding: 10px; background: #1a1a1a; color: #ccc; border: 1px solid #333; margin-bottom: 5px; cursor: pointer; font-size: 10px; transition: 0.2s; border-radius: 4px; text-transform: uppercase; }
-        button:hover { background: #222; border-color: #00ffcc; color: #fff; }
-        button.danger { border-color: #441111; color: #ff5555; }
-        button.danger:hover { background: #330000; border-color: #ff0055; }
-        input, select { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 8px; font-size: 11px; box-sizing: border-box; border-radius: 4px; outline: none; }
-        input:focus { border-color: #00ffcc; }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #020202; color: #00ffcc; font-family: monospace; overflow: hidden; }
+        #ui { position: absolute; top: 10px; left: 10px; z-index: 1000; background: rgba(0,0,0,0.9); padding: 15px; border: 1px solid #333; width: 280px; max-height: 95vh; overflow-y: auto; font-size: 11px; border-radius: 8px; }
+        .group { margin-bottom: 12px; padding: 10px; border: 1px solid #222; background: #0a0a0a; border-radius: 4px; }
+        label { display: block; font-size: 9px; color: #666; margin-bottom: 4px; text-transform: uppercase; }
+        input[type="range"] { width: 100%; margin: 5px 0; accent-color: #00ffcc; }
+        button { width: 100%; padding: 8px; margin: 2px 0; background: #111; color: #00ffcc; border: 1px solid #444; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        button:hover { background: #00ffcc; color: #000; }
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        #audio-hint { font-size: 9px; color: #00ffcc; margin-bottom: 10px; display: block; text-align: center; }
     </style>
 </head>
 <body>
 
 <div id="ui">
-    <h3>Babel Catalogue</h3>
-    <span id="audio-hint">Click anywhere to enable Ethereal Audio</span>
+    <h3 style="text-align:center; margin:0 0 10px 0; letter-spacing:2px;">BABEL v10.3</h3>
     
     <div class="group">
-        <label>Identity (Catalogue Volume)</label>
-        <input type="text" id="titleInput" value="Encyclopedia" oninput="updateTitle(this.value)">
-    </div>
-
-    <div class="group">
-        <label>Cover Material</label>
-        <select onchange="morphMaterial(this.value)">
-            <option value="leather">Ancient Leather</option>
-            <option value="metal">Polished Tungsten</option>
-            <option value="wood">Black Ebony</option>
-            <option value="glass">Ghost Glass</option>
-        </select>
-    </div>
-
-    <div class="group">
-        <label>Data Stream Intensity</label>
-        <input type="range" min="0" max="500" value="150" oninput="particleIntensity = this.value; updateStreamHum()">
-        <input type="color" value="#00ffcc" oninput="updateParticleColor(this.value)">
-    </div>
-
-    <div class="group">
-        <label>Physical & Emotional State</label>
-        <button onclick="toggleBook()">Open / Close Toggle</button>
+        <label>Stage Staging</label>
+        <button id="hoverBtn">Toggle Ethereal Hover</button>
+        <label>Spine Rotation</label>
+        <input type="range" id="spineSlider" min="-3.14" max="3.14" step="0.01" value="0.5">
+        <label>Tilt / Scale</label>
         <div class="row">
-            <button onclick="triggerEmotion('focus')">Focus</button>
-            <button onclick="triggerEmotion('drift')">Drift</button>
+            <input type="range" id="tiltSlider" min="-1.5" max="1.5" step="0.01" value="0.2">
+            <input type="range" id="scaleSlider" min="0.5" max="2" step="0.01" value="1">
         </div>
-        <button class="danger" onclick="triggerEmotion('glitch')">Trigger Paradox (Glitch)</button>
-    </div>
     </div>
 
-    <script type="module">
-        import { createBabelCatalogue } from './babelCatalogue.js';
+    <div class="group">
+        <label>Covers (Hinges)</label>
+        <div class="row">
+            <div><label>Front</label><input type="range" id="frontHingeSlider" min="0" max="3" step="0.01" value="0"></div>
+            <div><label>Back</label><input type="range" id="backHingeSlider" min="0" max="3" step="0.01" value="0"></div>
+        </div>
+    </div>
 
-        const titleInput = document.getElementById('titleInput');
+    <div class="group">
+        <label>Search Logic (Flip)</label>
+        <div class="row">
+            <button id="flipForwardBtn">Forward</button>
+            <button id="flipBackwardBtn">Backward</button>
+        </div>
+        <button id="resetPagesBtn">Reset Stack</button>
+    </div>
 
-        // Create the core Babel Catalogue engine
-        const catalogue = createBabelCatalogue({
-            container: document.body,
-            initialTitle: titleInput.value || 'Encyclopedia',
-            initialParticleIntensity: 150,
-        });
+    <div class="group">
+        <label>Tone & Paradox</label>
+        <select id="materialSelect" style="width:100%; background:#000; color:#0f0; border:1px solid #444; padding:5px;">
+            <option value="leather">Ancient Leather</option>
+            <option value="metal">Systemic Metal</option>
+            <option value="glass">Conceptual Glass</option>
+        </select>
+        <button id="glitchBtn" style="color:#ff3366; margin-top:10px;">Trigger Glitch</button>
+    </div>
 
-        // Wire the HTML controls to the module API
-        window.updateTitle = (text) => catalogue.updateTitle(text);
-        window.toggleBook = () => catalogue.toggleBook();
-        window.morphMaterial = (mode) => catalogue.morphMaterial(mode);
-        window.triggerEmotion = (type) => catalogue.triggerEmotion(type);
-        window.updateParticleColor = (hex) => catalogue.setParticleColor(hex);
-        window.particleIntensity = 150;
-        window.updateStreamHum = () =>
-            catalogue.setParticleIntensity(window.particleIntensity);
+    <div class="group">
+        <label>Phase 1: Dynamic Data Visualization</label>
+        <label>Glow Intensity (0.0 - 2.0)</label>
+        <input type="range" id="glowSlider" min="0" max="2" step="0.1" value="0">
+        <label>Confidence Score (0.0 - 1.0)</label>
+        <input type="range" id="confidenceSlider" min="0" max="1" step="0.01" value="0">
+        <label>Particle Intensity (0.0 - 1.0)</label>
+        <input type="range" id="particleSlider" min="0" max="1" step="0.01" value="0">
+        <div class="row">
+            <button id="toggleParticlesBtn">Toggle Particles</button>
+            <button id="togglePageContentBtn">Toggle Page Content</button>
+        </div>
+        <label>Page Content Scroll Speed</label>
+        <input type="range" id="scrollSpeedSlider" min="0" max="5" step="0.1" value="1">
+    </div>
 
-        // Initialize with starting title / state
-        window.updateTitle(titleInput.value);
-    </script>
+    <div class="group">
+        <label>Initialization JSON (copy into createBabelCatalogue options)</label>
+        <pre id="configSnippet" style="background:#000; color:#0f0; padding:8px; border-radius:4px; font-size:10px; white-space:pre; overflow-x:auto;"></pre>
+    </div>
+</div>
+
+<script type="module">
+    import { createBabelCatalogue } from './babelCatalogue.js';
+
+    const spineSlider = document.getElementById('spineSlider');
+    const tiltSlider = document.getElementById('tiltSlider');
+    const scaleSlider = document.getElementById('scaleSlider');
+    const frontHingeSlider = document.getElementById('frontHingeSlider');
+    const backHingeSlider = document.getElementById('backHingeSlider');
+    const materialSelect = document.getElementById('materialSelect');
+    const configSnippet = document.getElementById('configSnippet');
+
+    const glowSlider = document.getElementById('glowSlider');
+    const confidenceSlider = document.getElementById('confidenceSlider');
+    const particleSlider = document.getElementById('particleSlider');
+    const scrollSpeedSlider = document.getElementById('scrollSpeedSlider');
+    const toggleParticlesBtn = document.getElementById('toggleParticlesBtn');
+    const togglePageContentBtn = document.getElementById('togglePageContentBtn');
+
+    const config = {
+        pageCount: 15,
+        initialSpineRotation: parseFloat(spineSlider.value),
+        initialTilt: parseFloat(tiltSlider.value),
+        initialScale: parseFloat(scaleSlider.value),
+        initialFrontHinge: parseFloat(frontHingeSlider.value),
+        initialBackHinge: parseFloat(backHingeSlider.value),
+        initialMaterial: materialSelect.value,
+        initialHover: false,
+        initialGlowIntensity: parseFloat(glowSlider.value),
+        initialConfidenceScore: parseFloat(confidenceSlider.value),
+        initialParticleIntensity: parseFloat(particleSlider.value),
+        enableParticles: true,
+        enablePageContent: true,
+    };
+
+    const renderConfigSnippet = () => {
+        configSnippet.textContent = JSON.stringify(config, null, 2);
+    };
+
+    // Create the Babel Catalogue instance
+    const catalogue = createBabelCatalogue({
+        container: document.body,
+        ...config,
+    });
+
+    renderConfigSnippet();
+
+    // Wire up UI controls
+    document.getElementById('hoverBtn').addEventListener('click', () => {
+        config.initialHover = !config.initialHover;
+        catalogue.toggleHover();
+        renderConfigSnippet();
+    });
+
+    spineSlider.addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        config.initialSpineRotation = v;
+        catalogue.setSpineRotation(v);
+        renderConfigSnippet();
+    });
+
+    tiltSlider.addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        config.initialTilt = v;
+        catalogue.setTilt(v);
+        renderConfigSnippet();
+    });
+
+    scaleSlider.addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        config.initialScale = v;
+        catalogue.setScale(v);
+        renderConfigSnippet();
+    });
+
+    frontHingeSlider.addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        config.initialFrontHinge = v;
+        catalogue.setFrontHinge(v);
+        renderConfigSnippet();
+    });
+
+    backHingeSlider.addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        config.initialBackHinge = v;
+        catalogue.setBackHinge(v);
+        renderConfigSnippet();
+    });
+
+    document.getElementById('flipForwardBtn').addEventListener('click', () => {
+        catalogue.flipPages('f');
+    });
+
+    document.getElementById('flipBackwardBtn').addEventListener('click', () => {
+        catalogue.flipPages('b');
+    });
+
+    document.getElementById('resetPagesBtn').addEventListener('click', () => {
+        catalogue.resetPages();
+    });
+
+    materialSelect.addEventListener('change', (e) => {
+        const val = e.target.value;
+        config.initialMaterial = val;
+        catalogue.morphMaterial(val);
+        renderConfigSnippet();
+    });
+
+    document.getElementById('glitchBtn').addEventListener('click', () => {
+        catalogue.glitch();
+    });
+
+    // Phase 1 controls
+    glowSlider.addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        config.initialGlowIntensity = v;
+        catalogue.setGlowIntensity(v);
+        renderConfigSnippet();
+    });
+
+    confidenceSlider.addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        config.initialConfidenceScore = v;
+        catalogue.setConfidenceScore(v);
+        renderConfigSnippet();
+    });
+
+    particleSlider.addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        config.initialParticleIntensity = v;
+        catalogue.setParticleIntensity(v);
+        renderConfigSnippet();
+    });
+
+    scrollSpeedSlider.addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        catalogue.setScrollSpeed(v);
+    });
+
+    toggleParticlesBtn.addEventListener('click', () => {
+        config.enableParticles = !config.enableParticles;
+        catalogue.enableParticles(config.enableParticles);
+        toggleParticlesBtn.textContent = config.enableParticles ? 'Disable Particles' : 'Enable Particles';
+        renderConfigSnippet();
+    });
+
+    togglePageContentBtn.addEventListener('click', () => {
+        config.enablePageContent = !config.enablePageContent;
+        catalogue.enablePageContent(config.enablePageContent);
+        togglePageContentBtn.textContent = config.enablePageContent ? 'Disable Page Content' : 'Enable Page Content';
+        renderConfigSnippet();
+    });
+
+    // Expose for console access
+    window.babelCatalogue = catalogue;
+</script>
 </body>
 </html>

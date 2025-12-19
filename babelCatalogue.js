@@ -4,273 +4,551 @@ import { TWEEN } from 'https://cdn.skypack.dev/tween.js';
 /**
  * Create a Babel Catalogue instance.
  *
- * This sets up the 3D book, particles, and audio engine, and returns a small
- * API that can be wired into any UI (sliders, buttons, LLM callbacks, etc).
+ * This sets up the 3D book with spine, hinged covers, and individual pages.
+ * Returns an API that can be wired into any UI (sliders, buttons, LLM callbacks, etc).
  *
  * @param {Object} options
  * @param {HTMLElement} [options.container=document.body] - Where to attach the WebGL canvas.
- * @param {string} [options.initialTitle='Encyclopedia'] - Initial title text.
+ * @param {number} [options.pageCount=15] - Number of individual page meshes.
+ * @param {number} [options.initialSpineRotation=0.5] - Initial spine Y rotation.
+ * @param {number} [options.initialTilt=0.2] - Initial X rotation (tilt).
+ * @param {number} [options.initialScale=1] - Initial scale.
+ * @param {number} [options.initialFrontHinge=0] - Initial front cover hinge angle.
+ * @param {number} [options.initialBackHinge=0] - Initial back cover hinge angle.
+ * @param {string} [options.initialMaterial='leather'] - Initial cover material.
+ * @param {boolean} [options.initialHover=false] - Whether the book starts in hover mode.
+ * @param {number} [options.initialGlowIntensity=0.0] - Initial glow intensity (0.0 to 2.0).
+ * @param {number} [options.initialConfidenceScore=0.0] - Initial confidence score (0.0 to 1.0).
+ * @param {number} [options.initialParticleIntensity=0.0] - Initial particle intensity (0.0 to 1.0).
  * @param {number} [options.particleCount=1500] - Number of particles in the data stream.
- * @param {number} [options.initialParticleIntensity=150] - Initial particle intensity.
+ * @param {boolean} [options.enableParticles=true] - Whether particles are enabled.
+ * @param {boolean} [options.enablePageContent=true] - Whether page content texture is enabled.
+ * @param {(direction: 'f'|'b') => void} [options.onFlip] - Callback fired when pages flip.
+ * @param {() => void} [options.onGlitch] - Callback fired when glitch is triggered.
+ * @param {(isHovering: boolean) => void} [options.onHoverChange] - Callback fired when hover toggles.
  * @returns {{
- *   updateTitle: (text: string) => void,
- *   morphMaterial: (mode: 'leather'|'metal'|'wood'|'glass') => void,
- *   triggerEmotion: (type: 'focus'|'drift'|'glitch') => void,
- *   toggleBook: () => void,
- *   setParticleIntensity: (value: number) => void,
- *   setParticleColor: (hex: string) => void,
- *   getState: () => { isOpen: boolean, isGlitching: boolean, particleIntensity: number },
+ *   setSpineRotation: (angle: number) => void,
+ *   setTilt: (angle: number) => void,
+ *   setScale: (value: number) => void,
+ *   setFrontHinge: (angle: number) => void,
+ *   setBackHinge: (angle: number) => void,
+ *   flipPages: (direction: 'f'|'b') => void,
+ *   resetPages: () => void,
+ *   morphMaterial: (type: 'leather'|'metal'|'glass') => void,
+ *   glitch: () => void,
+ *   toggleHover: () => void,
+ *   getState: () => object,
  *   resize: () => void,
- *   dispose: () => void
+ *   dispose: () => void,
+ *   bookGroup: THREE.Group,
+ *   setGlowIntensity: (intensity: number) => void,
+ *   setConfidenceScore: (score: number) => void,
+ *   setParticleIntensity: (intensity: number) => void,
+ *   enableParticles: (enabled: boolean) => void,
+ *   setPageContent: (text: string) => void,
+ *   setScrollSpeed: (speed: number) => void,
+ *   enablePageContent: (enabled: boolean) => void,
+ *   updatePageContentStream: (tokens: string[]) => void
  * }}
  */
 export function createBabelCatalogue(options = {}) {
   const {
     container = document.body,
-    initialTitle = 'Encyclopedia',
+    pageCount = 15,
+    initialSpineRotation = 0.5,
+    initialTilt = 0.2,
+    initialScale = 1,
+    initialFrontHinge = 0,
+    initialBackHinge = 0,
+    initialMaterial = 'leather',
+    initialHover = false,
+    initialGlowIntensity = 0.0,
+    initialConfidenceScore = 0.0,
+    initialParticleIntensity = 0.0,
     particleCount = 1500,
-    initialParticleIntensity = 150,
+    enableParticles = true,
+    enablePageContent = true,
+    onFlip,
+    onGlitch,
+    onHoverChange,
   } = options;
-
-  // --- AUDIO ENGINE ---
-  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  const audioCtx = AudioContextClass ? new AudioContextClass() : null;
-  let streamOsc = null;
-  let streamGain = null;
-
-  let isOpen = false;
-  let isGlitching = false;
-  let particleIntensity = initialParticleIntensity;
-  let currentTitle = initialTitle;
-
-  const playTone = (freq, type, dur, vol) => {
-    if (!audioCtx) return;
-    const osc = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    g.gain.setValueAtTime(vol, audioCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
-    osc.connect(g);
-    g.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + dur);
-  };
-
-  const setupStreamHum = () => {
-    if (!audioCtx) return;
-    streamOsc = audioCtx.createOscillator();
-    streamGain = audioCtx.createGain();
-    streamOsc.type = 'sine';
-    streamOsc.frequency.setValueAtTime(110, audioCtx.currentTime);
-    streamGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    streamOsc.connect(streamGain);
-    streamGain.connect(audioCtx.destination);
-    streamOsc.start();
-  };
-  setupStreamHum();
-
-  const updateStreamHum = () => {
-    if (!streamGain || !audioCtx) return;
-    const target = (particleIntensity / 1000) * (isOpen ? 0.1 : 0);
-    streamGain.gain.setTargetAtTime(target, audioCtx.currentTime, 0.1);
-  };
 
   // --- THREE.JS ENGINE ---
   const scene = new THREE.Scene();
 
   const getContainerSize = () => {
+    // For body/document.body, use window dimensions directly
+    if (container === document.body || container === document.documentElement) {
+      return { w: window.innerWidth, h: window.innerHeight };
+    }
     const w = container.clientWidth || window.innerWidth;
     const h = container.clientHeight || window.innerHeight;
-    return { w, h };
+    return { w: w || window.innerWidth, h: h || window.innerHeight };
   };
   const { w: initialW, h: initialH } = getContainerSize();
 
-  const camera = new THREE.PerspectiveCamera(40, initialW / initialH, 0.1, 1000);
+  // Ensure container has proper dimensions
+  if (container === document.body) {
+    container.style.width = '100%';
+    container.style.height = '100%';
+    container.style.margin = '0';
+    container.style.padding = '0';
+    container.style.overflow = 'hidden';
+  }
+
+  const camera = new THREE.PerspectiveCamera(45, initialW / initialH, 0.1, 1000);
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(initialW, initialH);
-  renderer.setClearColor(0x050505);
+  renderer.setClearColor(0x020202);
+
+  // Position canvas absolutely to fill container
+  renderer.domElement.style.position = 'absolute';
+  renderer.domElement.style.top = '0';
+  renderer.domElement.style.left = '0';
+  renderer.domElement.style.width = '100%';
+  renderer.domElement.style.height = '100%';
+
   container.appendChild(renderer.domElement);
 
+  // Lighting
+  scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+  const light = new THREE.PointLight(0x00ffcc, 1, 50);
+  light.position.set(5, 5, 5);
+  scene.add(light);
+
+  // Book Group
   const bookGroup = new THREE.Group();
   scene.add(bookGroup);
 
-  // Title Canvas
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 512;
-  const ctx = canvas.getContext('2d');
-  const titleTex = new THREE.CanvasTexture(canvas);
-
-  const drawTitle = (text) => {
-    ctx.clearRect(0, 0, 512, 512);
-    ctx.textAlign = 'center';
-    if (isGlitching) {
-      for (let i = 0; i < 5; i++) {
-        ctx.fillStyle = i % 2 === 0 ? '#ff0055' : '#00ffcc';
-        ctx.font = 'italic 36px serif';
-        ctx.fillText(
-          text.toUpperCase(),
-          256 + (Math.random() - 0.5) * 50,
-          160 + (Math.random() - 0.5) * 30
-        );
-      }
-    } else {
-      ctx.fillStyle = 'rgba(255,255,255,0.7)';
-      ctx.font = '32px serif';
-      ctx.fillText(text.toUpperCase(), 256, 160);
-    }
-    titleTex.needsUpdate = true;
-  };
-
-  const updateTitle = (text) => {
-    currentTitle = text;
-    drawTitle(currentTitle);
-  };
-  updateTitle(initialTitle);
-
-  // Book Objects
+  // Materials
   const coverMat = new THREE.MeshStandardMaterial({
-    color: 0x221a15,
-    roughness: 0.7,
+    color: 0x2b1e16,
+    side: THREE.DoubleSide,
   });
+  // Phase 1.1: Convert to MeshPhysicalMaterial for emissive glow
   const pageMat = new THREE.MeshPhysicalMaterial({
-    color: 0xffffff,
-    transparent: true,
-    opacity: 0.1,
-    transmission: 0.9,
-    emissive: 0x002222,
-  });
-
-  const frontCover = new THREE.Mesh(new THREE.BoxGeometry(3, 4, 0.08), coverMat);
-  const backCover = new THREE.Mesh(new THREE.BoxGeometry(3, 4, 0.08), coverMat);
-  const pages = new THREE.Mesh(new THREE.BoxGeometry(2.9, 3.95, 0.7), pageMat);
-
-  const titlePlate = new THREE.Mesh(
-    new THREE.PlaneGeometry(3, 4),
-    new THREE.MeshBasicMaterial({ map: titleTex, transparent: true })
-  );
-  titlePlate.position.z = 0.05;
-  frontCover.add(titlePlate);
-
-  const frontPivot = new THREE.Group();
-  frontPivot.position.set(-1.5, 0, 0.35);
-  frontCover.position.set(1.5, 0, 0);
-  frontPivot.add(frontCover);
-
-  backCover.position.z = -0.35;
-  bookGroup.add(frontPivot, backCover, pages);
-
-  // Particles
-  const partGeom = new THREE.BufferGeometry();
-  const posArray = new Float32Array(particleCount * 3);
-  for (let i = 0; i < particleCount * 3; i++) {
-    posArray[i] = (Math.random() - 0.5) * 3;
-  }
-  partGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-  const partMat = new THREE.PointsMaterial({
     color: 0x00ffcc,
-    size: 0.015,
     transparent: true,
-    opacity: 0,
+    opacity: 0.15,
+    side: THREE.DoubleSide,
+    emissive: 0x00ffcc,
+    emissiveIntensity: initialGlowIntensity,
   });
-  const particles = new THREE.Points(partGeom, partMat);
-  scene.add(particles);
 
-  scene.add(
-    new THREE.AmbientLight(0xffffff, 0.3),
-    new THREE.PointLight(0xffffff, 0.8).set(5, 5, 5)
+  // Spine
+  const spine = new THREE.Mesh(
+    new THREE.BoxGeometry(0.1, 4, 0.6),
+    new THREE.MeshStandardMaterial({ color: 0x111111 })
   );
-  camera.position.set(0, 1, 9);
+  bookGroup.add(spine);
 
-  const toggleBook = () => {
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume();
+  // Front Cover (Hinged)
+  const frontPivot = new THREE.Group();
+  frontPivot.position.set(0.05, 0, 0.3);
+  const frontCover = new THREE.Mesh(new THREE.BoxGeometry(3, 4, 0.05), coverMat);
+  frontCover.position.x = 1.5;
+  frontPivot.add(frontCover);
+  bookGroup.add(frontPivot);
+
+  // Back Cover (Hinged)
+  const backPivot = new THREE.Group();
+  backPivot.position.set(0.05, 0, -0.3);
+  const backCover = new THREE.Mesh(new THREE.BoxGeometry(3, 4, 0.05), coverMat);
+  backCover.position.x = 1.5;
+  backPivot.add(backCover);
+  bookGroup.add(backPivot);
+
+  // Individual Pages
+  const pages = [];
+  for (let i = 0; i < pageCount; i++) {
+    const pagePivot = new THREE.Group();
+    pagePivot.position.set(0.06, 0, -0.25 + i * 0.035);
+    bookGroup.add(pagePivot);
+    const pageMesh = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 3.8), pageMat);
+    pageMesh.position.x = 1.4;
+    pagePivot.add(pageMesh);
+    pages.push(pagePivot);
+  }
+  
+  // Phase 1.3: Canvas texture for page content
+  if (pageContentEnabled) {
+    pageContentCanvas = document.createElement('canvas');
+    pageContentCanvas.width = 512;
+    pageContentCanvas.height = 512;
+    const ctx = pageContentCanvas.getContext('2d');
+    pageContentTexture = new THREE.CanvasTexture(pageContentCanvas);
+    pageContentTexture.wrapS = THREE.RepeatWrapping;
+    pageContentTexture.wrapT = THREE.RepeatWrapping;
+    pageMat.map = pageContentTexture;
+    pageMat.needsUpdate = true;
+    
+    // Initial text rendering
+    updatePageContent();
+  }
+  
+  // Phase 1.2: Particle system
+  if (particlesEnabled) {
+    particleGeometry = new THREE.BufferGeometry();
+    const posArray = new Float32Array(particleCount * 3);
+    particleVelocities = new Float32Array(particleCount * 3);
+    
+    // Initialize particles
+    for (let i = 0; i < particleCount; i++) {
+      const i3 = i * 3;
+      // Start particles at base of pages
+      posArray[i3] = (Math.random() - 0.5) * 2.5; // X
+      posArray[i3 + 1] = -2 + Math.random() * 0.5; // Y (base)
+      posArray[i3 + 2] = -0.25 + Math.random() * 0.1; // Z
+      
+      // Random velocities (stored persistently)
+      particleVelocities[i3] = (Math.random() - 0.5) * 0.02;
+      particleVelocities[i3 + 1] = 0.01 + Math.random() * 0.03; // Upward
+      particleVelocities[i3 + 2] = (Math.random() - 0.5) * 0.01;
     }
-    isOpen = !isOpen;
-    new TWEEN.Tween(frontPivot.rotation)
-      .to({ y: isOpen ? -Math.PI * 0.85 : 0 }, 1400)
-      .easing(TWEEN.Easing.Cubic.InOut)
-      .start();
-    new TWEEN.Tween(partMat).to({ opacity: isOpen ? 0.8 : 0 }, 1000).start();
-    playTone(isOpen ? 220 : 110, 'sine', 1.5, 0.1);
-    updateStreamHum();
+    
+    particleGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+    particleMaterial = new THREE.PointsMaterial({
+      color: 0x00ffcc,
+      size: 0.02,
+      transparent: true,
+      opacity: 0.6,
+      blending: THREE.AdditiveBlending,
+    });
+    
+    particles = new THREE.Points(particleGeometry, particleMaterial);
+    scene.add(particles);
+  }
+
+  // Camera setup
+  camera.position.set(6, 4, 10);
+  camera.lookAt(0, 0, 0);
+
+  // State
+  let isHovering = false;
+  let frontHingeAngle = 0;
+  let backHingeAngle = 0;
+  
+  // Phase 1.1: Glow intensity tracking
+  let currentGlowIntensity = initialGlowIntensity;
+  let confidenceScore = initialConfidenceScore;
+  let previousPageAngles = new Array(pageCount).fill(0);
+  let lastUpdateTime = performance.now();
+  
+  // Phase 1.2: Particle system state
+  let particleIntensity = initialParticleIntensity;
+  let particlesEnabled = enableParticles;
+  let particles = null;
+  let particleGeometry = null;
+  let particleMaterial = null;
+  let particleVelocities = null; // Store velocities for particles
+  
+  // Phase 1.3: Canvas texture for page content
+  let pageContentEnabled = enablePageContent;
+  let pageContentCanvas = null;
+  let pageContentTexture = null;
+  let scrollOffset = 0;
+  let scrollSpeed = 1.0;
+
+  const emitEvent = (type, detail) => {
+    try {
+      const target = container || window;
+      if (typeof CustomEvent === 'function' && target && target.dispatchEvent) {
+        target.dispatchEvent(new CustomEvent(type, { detail }));
+      }
+    } catch {
+      // swallow event errors to avoid breaking rendering
+    }
   };
 
-  const morphMaterial = (m) => {
-    const s = {
-      leather: { color: 0x221a15, metalness: 0, roughness: 0.8, opacity: 1, freq: 150 },
-      metal: { color: 0x666666, metalness: 1, roughness: 0.2, opacity: 1, freq: 880 },
-      wood: { color: 0x1a0f00, metalness: 0, roughness: 0.6, opacity: 1, freq: 100 },
-      glass: { color: 0xffffff, metalness: 0, roughness: 0, opacity: 0.3, freq: 1200 },
-    };
-    const target = s[m] || s.leather;
-    new TWEEN.Tween(coverMat).to(target, 1000).start();
-    coverMat.transparent = m === 'glass';
-    playTone(target.freq, 'triangle', 0.5, 0.05);
+  // API Methods
+  const setSpineRotation = (angle) => {
+    bookGroup.rotation.y = angle;
   };
 
-  const triggerEmotion = (type) => {
-    if (type === 'focus') {
-      new TWEEN.Tween(bookGroup.position)
-        .to({ y: 1.2, x: 0, z: 2 }, 1000)
-        .easing(TWEEN.Easing.Back.Out)
-        .start();
-      playTone(440, 'sine', 0.8, 0.05);
-    } else if (type === 'glitch') {
-      isGlitching = true;
-      playTone(60, 'sawtooth', 0.5, 0.1);
-      new TWEEN.Tween(bookGroup.position)
-        .to({ x: '+0.1' }, 40)
-        .repeat(25)
-        .yoyo(true)
-        .onComplete(() => {
-          isGlitching = false;
-          drawTitle(currentTitle);
-        })
-        .start();
-    } else {
-      new TWEEN.Tween(bookGroup.position)
-        .to({ y: -1, x: 3, z: -2 }, 2000)
+  const setTilt = (angle) => {
+    bookGroup.rotation.x = angle;
+  };
+
+  const setScale = (value) => {
+    bookGroup.scale.set(value, value, value);
+  };
+
+  const setFrontHinge = (angle) => {
+    frontHingeAngle = angle;
+    frontPivot.rotation.y = -angle;
+    // Constrain pages to not exceed front hinge
+    pages.forEach((p) => {
+      if (p.rotation.y < -angle) p.rotation.y = -angle;
+    });
+  };
+
+  const setBackHinge = (angle) => {
+    backHingeAngle = angle;
+    backPivot.rotation.y = angle;
+    // Constrain pages to not exceed back hinge
+    pages.forEach((p) => {
+      if (p.rotation.y > angle) p.rotation.y = angle;
+    });
+  };
+
+  const flipPages = (direction) => {
+    const target = direction === 'f' ? -frontHingeAngle : backHingeAngle;
+    pages.forEach((p, i) => {
+      new TWEEN.Tween(p.rotation)
+        .to({ y: target }, 700)
+        .delay(i * 60)
         .easing(TWEEN.Easing.Quadratic.InOut)
         .start();
-      playTone(80, 'sine', 2, 0.05);
+    });
+    if (typeof onFlip === 'function') onFlip(direction);
+    emitEvent('babel:flip', { direction, state: getState() });
+  };
+  
+  // Phase 1.1: Update glow intensity based on flip velocity
+  const updateGlowFromFlipVelocity = () => {
+    const now = performance.now();
+    const deltaTime = (now - lastUpdateTime) / 1000; // Convert to seconds
+    lastUpdateTime = now;
+    
+    if (deltaTime === 0) return;
+    
+    let maxVelocity = 0;
+    pages.forEach((p, i) => {
+      const currentAngle = p.rotation.y;
+      const previousAngle = previousPageAngles[i];
+      const velocity = Math.abs(currentAngle - previousAngle) / deltaTime;
+      maxVelocity = Math.max(maxVelocity, velocity);
+      previousPageAngles[i] = currentAngle;
+    });
+    
+    // Map velocity to emissive intensity (0.0 to 2.0)
+    const velocityBasedGlow = Math.min(maxVelocity * 0.1, 2.0);
+    
+    // Combine with confidence score
+    const confidenceBasedGlow = confidenceScore * 0.5;
+    
+    // Use maximum of both, but smooth transitions
+    const targetGlow = Math.max(velocityBasedGlow, confidenceBasedGlow);
+    currentGlowIntensity = currentGlowIntensity * 0.9 + targetGlow * 0.1; // Smooth interpolation
+    pageMat.emissiveIntensity = Math.max(0, Math.min(2.0, currentGlowIntensity));
+  };
+  
+  // Phase 1.1: API methods for glow
+  const setGlowIntensity = (intensity) => {
+    currentGlowIntensity = Math.max(0, Math.min(2.0, intensity));
+    pageMat.emissiveIntensity = currentGlowIntensity;
+  };
+  
+  const setConfidenceScore = (score) => {
+    confidenceScore = Math.max(0, Math.min(1.0, score));
+    // Confidence affects both glow and particles
+    const confidenceGlow = confidenceScore * 0.5;
+    if (confidenceGlow > currentGlowIntensity) {
+      currentGlowIntensity = confidenceGlow;
+      pageMat.emissiveIntensity = currentGlowIntensity;
+    }
+    // Update particle intensity
+    if (particlesEnabled) {
+      particleIntensity = confidenceScore;
+    }
+  };
+  
+  // Phase 1.2: Particle system API methods
+  const setParticleIntensity = (intensity) => {
+    particleIntensity = Math.max(0, Math.min(1.0, intensity));
+  };
+  
+  const enableParticles = (enabled) => {
+    particlesEnabled = enabled;
+    if (particles) {
+      particles.visible = enabled;
+    }
+  };
+  
+  // Phase 1.2: Update particle system
+  const updateParticles = (deltaTime) => {
+    if (!particlesEnabled || !particles || !particleVelocities) return;
+    
+    const isBookOpen = frontHingeAngle > 0.5 || backHingeAngle > 0.5;
+    if (!isBookOpen) {
+      // Hide particles when book is closed
+      particles.visible = false;
+      return;
+    }
+    
+    particles.visible = true;
+    const posArray = particleGeometry.attributes.position.array;
+    const activeParticleCount = Math.floor(particleIntensity * particleCount);
+    
+    for (let i = 0; i < activeParticleCount; i++) {
+      const i3 = i * 3;
+      
+      // Update position using stored velocities
+      posArray[i3] += particleVelocities[i3] * deltaTime * 60; // Scale by deltaTime
+      posArray[i3 + 1] += particleVelocities[i3 + 1] * deltaTime * 60 * (0.5 + particleIntensity * 0.5);
+      posArray[i3 + 2] += particleVelocities[i3 + 2] * deltaTime * 60;
+      
+      // Reset if particle goes too high
+      if (posArray[i3 + 1] > 3) {
+        posArray[i3] = (Math.random() - 0.5) * 2.5;
+        posArray[i3 + 1] = -2 + Math.random() * 0.5;
+        posArray[i3 + 2] = -0.25 + Math.random() * 0.1;
+        // Reset velocity
+        particleVelocities[i3] = (Math.random() - 0.5) * 0.02;
+        particleVelocities[i3 + 1] = 0.01 + Math.random() * 0.03;
+        particleVelocities[i3 + 2] = (Math.random() - 0.5) * 0.01;
+      }
+    }
+    
+    particleGeometry.attributes.position.needsUpdate = true;
+  };
+  
+  // Phase 1.3: Update page content canvas
+  const updatePageContent = () => {
+    if (!pageContentEnabled || !pageContentCanvas) return;
+    
+    const ctx = pageContentCanvas.getContext('2d');
+    ctx.clearRect(0, 0, 512, 512);
+    
+    // Generate procedural text/glyphs
+    const symbols = ['▮', '▯', '▰', '▱', '▪', '▫', '◼', '◻', '●', '○', '◆', '◇'];
+    ctx.fillStyle = 'rgba(0, 255, 204, 0.3)';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'left';
+    
+    // Draw scrolling columns
+    const columnCount = 8;
+    const lineHeight = 12;
+    const columnWidth = 512 / columnCount;
+    
+    for (let col = 0; col < columnCount; col++) {
+      const x = col * columnWidth;
+      const startY = (scrollOffset + col * 50) % (512 + lineHeight * 10) - lineHeight * 10;
+      
+      for (let i = 0; i < 20; i++) {
+        const y = startY + i * lineHeight;
+        if (y > -lineHeight && y < 512) {
+          const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+          ctx.fillText(symbol, x + 5, y);
+        }
+      }
+    }
+    
+    pageContentTexture.needsUpdate = true;
+  };
+  
+  // Phase 1.3: Page content API methods
+  const setPageContent = (text) => {
+    if (!pageContentCanvas) return;
+    const ctx = pageContentCanvas.getContext('2d');
+    ctx.clearRect(0, 0, 512, 512);
+    ctx.fillStyle = 'rgba(0, 255, 204, 0.5)';
+    ctx.font = '12px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(text, 256, 256);
+    pageContentTexture.needsUpdate = true;
+  };
+  
+  const setScrollSpeed = (speed) => {
+    scrollSpeed = Math.max(0, Math.min(5.0, speed));
+  };
+  
+  const enablePageContent = (enabled) => {
+    pageContentEnabled = enabled;
+    if (pageContentTexture) {
+      pageMat.map = enabled ? pageContentTexture : null;
+      pageMat.needsUpdate = true;
+    }
+  };
+  
+  const updatePageContentStream = (tokens) => {
+    // For streaming AI tokens - could be enhanced
+    if (!pageContentCanvas) return;
+    const ctx = pageContentCanvas.getContext('2d');
+    // Implementation for token streaming
+  };
+
+  const resetPages = () => {
+    pages.forEach((p) => {
+      new TWEEN.Tween(p.rotation).to({ y: 0 }, 500).start();
+    });
+  };
+
+  const morphMaterial = (type) => {
+    const colors = {
+      leather: 0x2b1e16,
+      metal: 0x777777,
+      glass: 0xffffff,
+    };
+    const color = colors[type] || colors.leather;
+    coverMat.color.set(color);
+    coverMat.opacity = type === 'glass' ? 0.3 : 1;
+    coverMat.transparent = type === 'glass';
+  };
+
+  const glitch = () => {
+    new TWEEN.Tween(bookGroup.position)
+      .to({ x: [0.3, -0.3, 0] }, 50)
+      .repeat(4)
+      .start();
+    if (typeof onGlitch === 'function') onGlitch();
+    emitEvent('babel:glitch', { state: getState() });
+  };
+
+  const toggleHover = () => {
+    isHovering = !isHovering;
+    if (typeof onHoverChange === 'function') onHoverChange(isHovering);
+    emitEvent('babel:hoverChange', { isHovering, state: getState() });
+    if (!isHovering) {
+      new TWEEN.Tween(bookGroup.position).to({ y: 0 }, 500).start();
     }
   };
 
-  const setParticleIntensity = (value) => {
-    particleIntensity = value;
-    updateStreamHum();
-  };
+  // Initialize
+  setSpineRotation(initialSpineRotation);
+  setTilt(initialTilt);
+  setScale(initialScale);
+  morphMaterial(initialMaterial);
+  setFrontHinge(initialFrontHinge);
+  setBackHinge(initialBackHinge);
+  if (initialHover) {
+    isHovering = true;
+  }
 
-  const setParticleColor = (hex) => {
-    partMat.color.set(hex);
-  };
-
+  // Animation loop
   let animationId = null;
+  let animationTime = 0;
+  let lastFrameTime = performance.now();
   const animate = (time) => {
     animationId = requestAnimationFrame(animate);
+    animationTime = time;
     TWEEN.update(time);
-    if (isGlitching) {
-      drawTitle(currentTitle);
+    
+    const now = performance.now();
+    const deltaTime = (now - lastFrameTime) / 1000;
+    lastFrameTime = now;
+    
+    // Phase 1.1: Update glow from flip velocity
+    updateGlowFromFlipVelocity();
+    
+    // Phase 1.2: Update particles
+    updateParticles(deltaTime);
+    
+    // Phase 1.3: Update page content scroll
+    if (pageContentEnabled) {
+      scrollOffset += scrollSpeed;
+      if (scrollOffset > 512) scrollOffset = 0;
+      updatePageContent();
     }
-    if (isOpen || isGlitching) {
-      const pos = particles.geometry.attributes.position.array;
-      for (let i = 0; i < particleCount; i++) {
-        if (isGlitching) {
-          pos[i * 3] += (Math.random() - 0.5) * 0.2;
-          pos[i * 3 + 1] += (Math.random() - 0.5) * 0.2;
-        } else {
-          pos[i * 3 + 1] += Math.random() * 0.01 * (particleIntensity / 100);
-        }
-        if (pos[i * 3 + 1] > 3) pos[i * 3 + 1] = -1;
-      }
-      particles.geometry.attributes.position.needsUpdate = true;
+    
+    if (isHovering) {
+      bookGroup.position.y = Math.sin(time * 0.002) * 0.3;
     }
     renderer.render(scene, camera);
   };
   animate();
 
+  // Resize handler
   const resize = () => {
     const { w, h } = getContainerSize();
     camera.aspect = w / h;
@@ -278,47 +556,59 @@ export function createBabelCatalogue(options = {}) {
     renderer.setSize(w, h);
   };
 
+  // Cleanup
   const dispose = () => {
     if (animationId) cancelAnimationFrame(animationId);
     renderer.dispose();
-    partGeom.dispose();
     coverMat.dispose();
     pageMat.dispose();
-    titleTex.dispose();
+    if (particleGeometry) particleGeometry.dispose();
+    if (particleMaterial) particleMaterial.dispose();
+    if (pageContentTexture) pageContentTexture.dispose();
     if (renderer.domElement && renderer.domElement.parentNode) {
       renderer.domElement.parentNode.removeChild(renderer.domElement);
-    }
-    if (streamOsc) {
-      streamOsc.stop();
-      streamOsc.disconnect();
-    }
-    if (streamGain) {
-      streamGain.disconnect();
-    }
-    if (audioCtx) {
-      audioCtx.close();
     }
   };
 
   window.addEventListener('resize', resize);
 
   const getState = () => ({
-    isOpen,
-    isGlitching,
+    isHovering,
+    frontHingeAngle,
+    backHingeAngle,
+    spineRotation: bookGroup.rotation.y,
+    tilt: bookGroup.rotation.x,
+    scale: bookGroup.scale.x,
+    glowIntensity: currentGlowIntensity,
+    confidenceScore,
     particleIntensity,
+    particlesEnabled,
+    pageContentEnabled,
   });
 
   return {
-    updateTitle,
+    setSpineRotation,
+    setTilt,
+    setScale,
+    setFrontHinge,
+    setBackHinge,
+    flipPages,
+    resetPages,
     morphMaterial,
-    triggerEmotion,
-    toggleBook,
-    setParticleIntensity,
-    setParticleColor,
+    glitch,
+    toggleHover,
     getState,
     resize,
     dispose,
+    bookGroup, // Direct access for advanced control
+    // Phase 1 additions
+    setGlowIntensity,
+    setConfidenceScore,
+    setParticleIntensity,
+    enableParticles,
+    setPageContent,
+    setScrollSpeed,
+    enablePageContent,
+    updatePageContentStream,
   };
 }
-
-
