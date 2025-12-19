@@ -37,6 +37,8 @@ export default function R3FDevInterface() {
     setFrontCoverText,
     setBackCoverText,
     setCoverTextColor,
+    setCoverOutlineColor,
+    setCoverOutlineWidth,
     setParticlesEnabled,
     setParticleIntensity,
     setDebug,
@@ -168,6 +170,19 @@ export default function R3FDevInterface() {
       value: '#c9a876',
       label: 'Text Color',
       onChange: (v) => setCoverTextColor(v)
+    },
+    coverOutlineColor: {
+      value: '#c9a876',
+      label: 'Outline Color',
+      onChange: (v) => setCoverOutlineColor(v)
+    },
+    coverOutlineWidth: {
+      value: 3,
+      min: 0,
+      max: 10,
+      step: 0.5,
+      label: 'Outline Width',
+      onChange: (v) => setCoverOutlineWidth(v)
     },
     
     frontCoverText: {

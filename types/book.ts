@@ -34,6 +34,8 @@ export interface BookConfig {
   frontCoverText: string;
   backCoverText: string;
   coverTextColor: string;
+  coverOutlineColor: string;
+  coverOutlineWidth: number;
   
   // Features
   particlesEnabled: boolean;
@@ -70,6 +72,8 @@ export interface CoverProps {
   hinge: number;
   text?: string;
   textColor?: string;
+  outlineColor?: string;
+  outlineWidth?: number;
   color?: string;
   opacity?: number;
 }

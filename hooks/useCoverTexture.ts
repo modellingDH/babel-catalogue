@@ -7,6 +7,8 @@ import * as THREE from 'three';
 export function useCoverTexture(
   text: string | undefined, 
   textColor: string = '#c9a876',
+  outlineColor: string = '#c9a876',
+  outlineWidth: number = 3,
   isFront: boolean = true
 ) {
   return useMemo(() => {
@@ -64,8 +66,8 @@ export function useCoverTexture(
     });
     
     // Add decorative border
-    ctx.strokeStyle = textColor;
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = outlineWidth;
     ctx.strokeRect(20, 20, 472, 472);
     
     // Create texture
@@ -73,6 +75,6 @@ export function useCoverTexture(
     texture.needsUpdate = true;
     
     return texture;
-  }, [text, textColor, isFront]);
+  }, [text, textColor, outlineColor, outlineWidth, isFront]);
 }
 

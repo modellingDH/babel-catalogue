@@ -33,6 +33,8 @@ export function Book() {
     frontCoverText,
     backCoverText,
     coverTextColor,
+    coverOutlineColor,
+    coverOutlineWidth,
     particlesEnabled,
     particleIntensity,
     debug,
@@ -100,6 +102,8 @@ export function Book() {
         hinge={frontHinge}
         text={frontCoverText}
         textColor={coverTextColor}
+        outlineColor={coverOutlineColor}
+        outlineWidth={coverOutlineWidth}
         color={coverColor}
         opacity={coverOpacity}
       />
@@ -110,6 +114,8 @@ export function Book() {
         hinge={backHinge}
         text={backCoverText}
         textColor={coverTextColor}
+        outlineColor={coverOutlineColor}
+        outlineWidth={coverOutlineWidth}
         color={coverColor}
         opacity={coverOpacity}
       />

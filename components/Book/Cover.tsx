@@ -13,10 +13,12 @@ export function Cover({
   hinge, 
   text,
   textColor = '#c9a876',
+  outlineColor = '#c9a876',
+  outlineWidth = 3,
   color = '#2b1e16',
   opacity = 1
 }: CoverProps) {
-  const texture = useCoverTexture(text, textColor, side === 'front');
+  const texture = useCoverTexture(text, textColor, outlineColor, outlineWidth, side === 'front');
   
   // Cover pivots at spine edge
   // Spine is centered at origin with width 0.1
@@ -33,6 +35,45 @@ export function Cover({
   // Rotation direction: front cover uses negative (opens forward), back uses positive
   const hingeRotation = side === 'front' ? -hinge : hinge;
   
+  // Create materials array: texture on outside (+X face), plain color on all others
+  const materials = [
+    // Right face (+X) - OUTSIDE - with texture
+    new THREE.MeshStandardMaterial({
+      color: color,
+      map: texture,
+      transparent: opacity < 1 || texture !== null,
+      opacity: opacity,
+      alphaTest: 0.1,
+    }),
+    // Left face (-X) - INSIDE - plain color
+    new THREE.MeshStandardMaterial({
+      color: color,
+      transparent: opacity < 1,
+      opacity: opacity,
+    }),
+    // Top, Bottom, Front, Back - plain color
+    new THREE.MeshStandardMaterial({
+      color: color,
+      transparent: opacity < 1,
+      opacity: opacity,
+    }),
+    new THREE.MeshStandardMaterial({
+      color: color,
+      transparent: opacity < 1,
+      opacity: opacity,
+    }),
+    new THREE.MeshStandardMaterial({
+      color: color,
+      transparent: opacity < 1,
+      opacity: opacity,
+    }),
+    new THREE.MeshStandardMaterial({
+      color: color,
+      transparent: opacity < 1,
+      opacity: opacity,
+    }),
+  ];
+  
   return (
     <group 
       position={[pivotX, 0, pivotZ]} 
@@ -43,16 +84,9 @@ export function Cover({
         position={[width / 2, 0, 0]} 
         castShadow 
         receiveShadow
+        material={materials}
       >
         <boxGeometry args={[width, height, coverThickness]} />
-        <meshStandardMaterial
-          color={color}
-          map={texture}
-          transparent={opacity < 1 || texture !== null}
-          opacity={opacity}
-          side={THREE.DoubleSide}
-          alphaTest={0.1}
-        />
       </mesh>
     </group>
   );

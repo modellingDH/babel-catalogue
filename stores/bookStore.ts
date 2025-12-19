@@ -105,7 +105,9 @@ const initialState: BookConfig = {
   // Cover text
   frontCoverText: '',
   backCoverText: '',
-  coverTextColor: '#c9a876', // Gold/beige default
+  coverTextColor: '#c9a876',
+  coverOutlineColor: '#c9a876',
+  coverOutlineWidth: 3, // Gold/beige default
   coverTextColor: '#c9a876', // Gold/beige default
   
   // Features
@@ -306,6 +308,8 @@ export const useBookStore = create<BookState>((set, get) => ({
   setFrontCoverText: (text) => set({ frontCoverText: text }),
   setBackCoverText: (text) => set({ backCoverText: text }),
   setCoverTextColor: (color) => set({ coverTextColor: color }),
+  setCoverOutlineColor: (color) => set({ coverOutlineColor: color }),
+  setCoverOutlineWidth: (width) => set({ coverOutlineWidth: width }),
   setParticlesEnabled: (enabled) => set({ particlesEnabled: enabled }),
   setParticleIntensity: (intensity) => set({ particleIntensity: intensity }),
   setConfidenceScore: (score) => set({ confidenceScore: score }),
