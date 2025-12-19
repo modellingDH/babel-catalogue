@@ -203,12 +203,14 @@ export const useBookStore = create<BookState>((set, get) => ({
         return;
       }
       
-      console.log('📄 Start flip backward:', currentPage, '→', newPage);
+      console.log('📄 Start flip BACKWARD:', currentPage, '→', newPage);
+      console.log('   Flipping page', currentPage, 'from FRONT to BACK');
       
-      // For backward, we flip the page at currentPage-1 from front to back
-      set({ flippingPageIndex: newPage, flipProgress: 0 });
+      // For backward, flip the first page from the FRONT stack
+      // This is the page at index currentPage
+      set({ flippingPageIndex: currentPage, flipProgress: 0 });
       
-      // Animate flip progress (but in reverse direction)
+      // Animate flip progress (in reverse - front to back)
       const duration = 5000; // ms - SLOW for debugging
       const startTime = performance.now();
       
@@ -217,13 +219,14 @@ export const useBookStore = create<BookState>((set, get) => ({
         const progress = Math.min(elapsed / duration, 1);
         
         set({ flipProgress: progress });
+        console.log(`  Progress: ${(progress * 100).toFixed(1)}% (BACKWARD)`);
         
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
-          // Animation complete - update currentPage and reset
+          // Animation complete - NOW update currentPage and reset
           set({ currentPage: newPage, flippingPageIndex: null, flipProgress: 0 });
-          console.log('✅ Flip complete:', newPage);
+          console.log('✅ Flip BACKWARD complete:', newPage);
         }
       };
       

@@ -152,8 +152,8 @@ export function Book() {
         <group position={[0, 0, -coverThickness / 2]}>
           {Array.from({ length: pageCount - currentPage }, (_, i) => {
             const pageIndex = i + currentPage;
-            // Skip the page that's currently flipping
-            if (pageIndex === flippingPageIndex) return null;
+            // Skip the page that's currently flipping (when flipping backward)
+            if (pageIndex === flippingPageIndex && flipProgress > 0) return null;
             
             return (
               <Page
@@ -174,11 +174,22 @@ export function Book() {
       
       {/* Flipping page - rendered separately with animation */}
       {flippingPageIndex !== null && flipProgress > 0 && (() => {
-        // Calculate page rotation between cover angles
-        // flipProgress goes from 0 (back) to 1 (front)
-        const pageRotation = backHinge + flipProgress * (-frontHinge - backHinge);
+        // Determine flip direction based on which stack the page comes from
+        const isFlippingForward = flippingPageIndex < currentPage;
         
-        console.log(`Rendering flipping page at rotation: ${(pageRotation * 180 / Math.PI).toFixed(1)}°`);
+        let pageRotation;
+        if (isFlippingForward) {
+          // Forward: 0 (back) to 1 (front)
+          // Rotate from backHinge to -frontHinge
+          pageRotation = backHinge + flipProgress * (-frontHinge - backHinge);
+        } else {
+          // Backward: 1 (front) to 0 (back)
+          // Rotate from -frontHinge back to backHinge
+          pageRotation = -frontHinge + flipProgress * (backHinge - (-frontHinge));
+        }
+        
+        const rotationDegrees = (pageRotation * 180 / Math.PI).toFixed(1);
+        console.log(`🟡 Flipping page ${flippingPageIndex} at ${rotationDegrees}° (${isFlippingForward ? 'FORWARD' : 'BACKWARD'})`);
         
         return (
           <group 
