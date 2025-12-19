@@ -22,9 +22,8 @@ export function useCoverTexture(
     
     if (!ctx) return null;
     
-    // Solid dark background so text is visible
-    ctx.fillStyle = '#1a0f0a';
-    ctx.fillRect(0, 0, 512, 512);
+    // Completely transparent background - only text will be visible
+    ctx.clearRect(0, 0, 512, 512);
     
     // Setup text style
     ctx.fillStyle = textColor;
@@ -66,10 +65,7 @@ export function useCoverTexture(
       });
     });
     
-    // Add decorative border
-    ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = outlineWidth;
-    ctx.strokeRect(20, 20, 472, 472);
+    // No decorative border - just text floating
     
     // Create texture
     const texture = new THREE.CanvasTexture(canvas);

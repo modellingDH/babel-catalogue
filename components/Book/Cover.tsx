@@ -54,6 +54,24 @@ export function Cover({
           side={THREE.DoubleSide}
         />
       </mesh>
+      
+      {/* Floating text in front of cover - no background */}
+      {texture && (
+        <mesh 
+          position={[width + 0.02, 0, 0]} // Offset in front of external face
+          rotation={[0, 0, 0]}
+        >
+          <planeGeometry args={[width * 0.9, height * 0.9]} />
+          <meshStandardMaterial
+            map={texture}
+            transparent={true}
+            opacity={opacity}
+            side={THREE.FrontSide} // Only visible from front
+            depthWrite={false}
+            alphaTest={0.1} // Only render non-transparent parts
+          />
+        </mesh>
+      )}
     </group>
   );
 }
