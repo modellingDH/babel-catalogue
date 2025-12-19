@@ -311,7 +311,7 @@ export default function R3FDevInterface() {
       <div style={{
         position: 'fixed',
         bottom: '20px',
-        right: '20px',
+        left: '20px',
         maxWidth: '400px',
         maxHeight: '300px',
         overflow: 'auto',
