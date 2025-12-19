@@ -174,10 +174,10 @@ export function Book() {
       
       {/* Flipping page - rendered separately with animation */}
       {flippingPageIndex !== null && flipProgress > 0 && (() => {
-        // Both forward and backward animate from back to front (0 to 180)
+        // Both forward and backward animate from front to back (180 to 0)
         // The difference is which page is selected, not the animation direction
-        // Always rotate from backHinge to -frontHinge
-        const pageRotation = backHinge + flipProgress * (-frontHinge - backHinge);
+        // Always rotate from -frontHinge to backHinge
+        const pageRotation = -frontHinge + flipProgress * (backHinge - (-frontHinge));
         
         return (
           <group 
