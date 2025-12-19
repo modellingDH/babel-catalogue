@@ -22,18 +22,19 @@ export function Particles({
     
     const { height, width, depth } = bookDimensions;
     
-    // Initialize particles with Poisson disk sampling for even distribution
+    // Initialize particles emanating from page area toward the front
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
-      // Spread particles around book
-      positions[i3] = (Math.random() - 0.5) * width * 2;
-      positions[i3 + 1] = (Math.random() - 0.5) * height * 2;
-      positions[i3 + 2] = (Math.random() - 0.5) * depth * 2;
       
-      // Random velocities
-      velocities[i3] = (Math.random() - 0.5) * 0.02;
-      velocities[i3 + 1] = (Math.random() - 0.5) * 0.02;
-      velocities[i3 + 2] = (Math.random() - 0.5) * 0.02;
+      // Start particles from page area (near spine, within book depth)
+      positions[i3] = (Math.random() - 0.5) * width * 0.5; // Near center (spine area)
+      positions[i3 + 1] = (Math.random() - 0.5) * height; // Full height
+      positions[i3 + 2] = (Math.random() - 0.5) * depth; // Within spine depth
+      
+      // Velocities: flow forward (positive X), slightly upward and outward
+      velocities[i3] = 0.01 + Math.random() * 0.02; // Forward (toward front of book)
+      velocities[i3 + 1] = Math.random() * 0.01; // Slightly upward
+      velocities[i3 + 2] = (Math.random() - 0.5) * 0.005; // Slight Z spread
     }
     
     return { positions, velocities };
@@ -45,30 +46,30 @@ export function Particles({
     
     const geometry = pointsRef.current.geometry;
     const positionAttr = geometry.attributes.position;
+    const { height, width, depth } = bookDimensions;
     
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
       
-      // Update positions
-      positionAttr.array[i3] += velocities[i3];
-      positionAttr.array[i3 + 1] += velocities[i3 + 1];
-      positionAttr.array[i3 + 2] += velocities[i3 + 2];
+      // Update positions - particles flow forward
+      positionAttr.array[i3] += velocities[i3] * intensity; // Speed affected by intensity
+      positionAttr.array[i3 + 1] += velocities[i3 + 1] * intensity;
+      positionAttr.array[i3 + 2] += velocities[i3 + 2] * intensity;
       
-      // Wrap around bounds
-      const bounds = {
-        x: bookDimensions.width * 2,
-        y: bookDimensions.height * 2,
-        z: bookDimensions.depth * 2
-      };
+      // Respawn at page source when particle moves too far forward
+      if (positionAttr.array[i3] > width * 2) {
+        // Respawn at page area
+        positionAttr.array[i3] = (Math.random() - 0.5) * width * 0.5; // Near spine
+        positionAttr.array[i3 + 1] = (Math.random() - 0.5) * height;
+        positionAttr.array[i3 + 2] = (Math.random() - 0.5) * depth;
+      }
       
-      if (Math.abs(positionAttr.array[i3]) > bounds.x) {
-        positionAttr.array[i3] = -Math.sign(positionAttr.array[i3]) * bounds.x;
+      // Wrap Y and Z
+      if (Math.abs(positionAttr.array[i3 + 1]) > height * 1.5) {
+        positionAttr.array[i3 + 1] = (Math.random() - 0.5) * height;
       }
-      if (Math.abs(positionAttr.array[i3 + 1]) > bounds.y) {
-        positionAttr.array[i3 + 1] = -Math.sign(positionAttr.array[i3 + 1]) * bounds.y;
-      }
-      if (Math.abs(positionAttr.array[i3 + 2]) > bounds.z) {
-        positionAttr.array[i3 + 2] = -Math.sign(positionAttr.array[i3 + 2]) * bounds.z;
+      if (Math.abs(positionAttr.array[i3 + 2]) > depth * 1.5) {
+        positionAttr.array[i3 + 2] = (Math.random() - 0.5) * depth;
       }
     }
     

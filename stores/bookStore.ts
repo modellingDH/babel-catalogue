@@ -202,7 +202,7 @@ export const useBookStore = create<BookState>((set, get) => ({
    */
   openBook: (duration = 1000) => {
     const current = get();
-    const targetAngle = Math.PI / 2; // 90 degrees
+    const targetAngle = Math.PI * 0.6; // ~108 degrees (realistic book open angle)
     
     animateValue(
       current.frontHinge,
@@ -275,17 +275,19 @@ export const useBookStore = create<BookState>((set, get) => ({
    * Flip multiple pages with animation
    */
   flipPages: (count, direction, duration = 50) => {
-    const { currentPage, pageCount } = get();
     let flipped = 0;
     
     const flipNext = () => {
       if (flipped >= count) return;
       
+      // Get fresh state each time
+      const { currentPage, pageCount } = get();
+      
       if (direction === 'forward') {
-        const newPage = (currentPage + flipped + 1) % pageCount;
+        const newPage = (currentPage + 1) % pageCount;
         set({ currentPage: newPage });
       } else {
-        const newPage = ((currentPage - flipped - 1) + pageCount) % pageCount;
+        const newPage = ((currentPage - 1) + pageCount) % pageCount;
         set({ currentPage: newPage });
       }
       
@@ -307,18 +309,64 @@ export const useBookStore = create<BookState>((set, get) => ({
     
     switch (emotion) {
       case 'focus':
-        // Book rises and zooms toward center
-        animateValue(current.scale, 1.3, 800, (v) => set({ scale: v }), easeInOutCubic);
-        animateValue(current.tilt, 0, 800, (v) => set({ tilt: v }), easeInOutCubic);
-        animateValue(current.glowIntensity, 1.5, 800, (v) => set({ glowIntensity: v }), easeInOutCubic);
+        // Bright pulsing of pages (high confidence, active thinking)
+        // Create a pulsing effect by animating glow up and down
+        let pulseCycles = 0;
+        const maxPulses = 5;
+        const pulseDuration = 400;
+        
+        const pulse = () => {
+          if (pulseCycles >= maxPulses) {
+            // End with bright glow
+            animateValue(get().glowIntensity, 1.2, pulseDuration, (v) => set({ glowIntensity: v }), easeInOutCubic);
+            return;
+          }
+          
+          // Up
+          animateValue(get().glowIntensity, 1.8, pulseDuration / 2, (v) => set({ glowIntensity: v }), easeInOutCubic);
+          
+          setTimeout(() => {
+            // Down
+            animateValue(get().glowIntensity, 0.8, pulseDuration / 2, (v) => set({ glowIntensity: v }), easeInOutCubic);
+            pulseCycles++;
+            setTimeout(pulse, pulseDuration / 2);
+          }, pulseDuration / 2);
+        };
+        
+        pulse();
+        
+        // Increase particle flow
         animateValue(current.particleIntensity, 1.0, 800, (v) => set({ particleIntensity: v }), easeInOutCubic);
         break;
         
       case 'drift':
-        // Book tilts and descends into periphery
-        animateValue(current.scale, 0.7, 1200, (v) => set({ scale: v }), easeInOutCubic);
-        animateValue(current.tilt, -0.5, 1200, (v) => set({ tilt: v }), easeInOutCubic);
-        animateValue(current.glowIntensity, 0.2, 1200, (v) => set({ glowIntensity: v }), easeInOutCubic);
+        // Dimming pulsing of pages (daydreaming, low activity)
+        // Slow, dim pulses
+        let dimPulseCycles = 0;
+        const maxDimPulses = 3;
+        const dimPulseDuration = 1000;
+        
+        const dimPulse = () => {
+          if (dimPulseCycles >= maxDimPulses) {
+            // End very dim
+            animateValue(get().glowIntensity, 0.1, dimPulseDuration, (v) => set({ glowIntensity: v }), easeInOutCubic);
+            return;
+          }
+          
+          // Slightly up
+          animateValue(get().glowIntensity, 0.4, dimPulseDuration / 2, (v) => set({ glowIntensity: v }), easeInOutCubic);
+          
+          setTimeout(() => {
+            // Down to dim
+            animateValue(get().glowIntensity, 0.1, dimPulseDuration / 2, (v) => set({ glowIntensity: v }), easeInOutCubic);
+            dimPulseCycles++;
+            setTimeout(dimPulse, dimPulseDuration / 2);
+          }, dimPulseDuration / 2);
+        };
+        
+        dimPulse();
+        
+        // Decrease particles
         animateValue(current.particleIntensity, 0.1, 1200, (v) => set({ particleIntensity: v }), easeInOutCubic);
         break;
         
