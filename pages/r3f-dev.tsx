@@ -3,7 +3,7 @@
  * New development interface using React Three Fiber
  */
 import { Canvas } from '@react-three/fiber';
-import { Leva, useControls } from 'leva';
+import { Leva, useControls, button } from 'leva';
 import { Stats, PerformanceMonitor } from '@react-three/drei';
 import { useEffect } from 'react';
 import Head from 'next/head';
@@ -65,15 +65,8 @@ export default function R3FDevInterface() {
       onChange: (v) => setCurrentPage(v)
     },
     
-    'Flip Forward': {
-      value: () => flipPage('forward'),
-      label: '→ Next Page'
-    },
-    
-    'Flip Backward': {
-      value: () => flipPage('backward'),
-      label: '← Previous Page'
-    },
+    'Flip Forward': button(() => flipPage('forward'), { label: '→ Next Page' }),
+    'Flip Backward': button(() => flipPage('backward'), { label: '← Previous Page' }),
     
     // Dimensions (spine depth auto-calculated from pageCount)
     dimensions: {
@@ -207,55 +200,25 @@ export default function R3FDevInterface() {
   });
   
   // Animated Actions
-  const actions = useControls('📖 Animated Actions', {
-    'Open Book': {
-      value: () => openBook(1000),
-      label: '📖 Open (1s)'
-    },
-    'Close Book': {
-      value: () => closeBook(1000),
-      label: '📕 Close (1s)'
-    },
-    'Flip 5 Forward': {
-      value: () => flipPages(5, 'forward', 50),
-      label: '→→ Flip 5 Pages Forward'
-    },
-    'Flip 5 Backward': {
-      value: () => flipPages(5, 'backward', 50),
-      label: '←← Flip 5 Pages Backward'
-    },
+  useControls('📖 Animated Actions', {
+    'Open Book': button(() => openBook(1000), { label: '📖 Open (1s)' }),
+    'Close Book': button(() => closeBook(1000), { label: '📕 Close (1s)' }),
+    'Flip 5 Forward': button(() => flipPages(5, 'forward', 50), { label: '→→ Flip 5 Pages' }),
+    'Flip 5 Backward': button(() => flipPages(5, 'backward', 50), { label: '←← Flip 5 Pages' }),
   });
   
   // Emotions (from README concept)
-  const emotions = useControls('🎭 Emotions (README Concept)', {
-    'Focus': {
-      value: () => triggerEmotion('focus'),
-      label: '⭐ Focus (rises, glows)'
-    },
-    'Drift': {
-      value: () => triggerEmotion('drift'),
-      label: '💤 Drift (fades, tilts)'
-    },
-    'Paradox': {
-      value: () => triggerEmotion('paradox'),
-      label: '⚡ Paradox (shake, glitch)'
-    },
+  useControls('🎭 Emotions', {
+    'Focus': button(() => triggerEmotion('focus'), { label: '⭐ Focus' }),
+    'Drift': button(() => triggerEmotion('drift'), { label: '💤 Drift' }),
+    'Paradox': button(() => triggerEmotion('paradox'), { label: '⚡ Paradox' }),
   });
   
   // Material Morphing (from README concept)
-  const materials = useControls('🎨 Material Morph (README Concept)', {
-    'Leather': {
-      value: () => morphMaterial('leather'),
-      label: '📚 Leather (humanities)'
-    },
-    'Metal': {
-      value: () => morphMaterial('metal'),
-      label: '🔬 Metal (scientific)'
-    },
-    'Glass': {
-      value: () => morphMaterial('glass'),
-      label: '💎 Glass (truth)'
-    },
+  useControls('🎨 Materials', {
+    'Leather': button(() => morphMaterial('leather'), { label: '📚 Leather' }),
+    'Metal': button(() => morphMaterial('metal'), { label: '🔬 Metal' }),
+    'Glass': button(() => morphMaterial('glass'), { label: '💎 Glass' }),
   });
   
   return (
