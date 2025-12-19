@@ -4,6 +4,7 @@
  */
 import { useRef } from 'react';
 import * as THREE from 'three';
+import { Group } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useBookStore } from '../../stores/bookStore';
 import { Page } from './Page';
@@ -30,6 +31,7 @@ export function Book() {
     glowIntensity,
     coverColor,
     coverOpacity,
+    spineColor,
     frontCoverText,
     backCoverText,
     coverTextColor,
@@ -91,6 +93,7 @@ export function Book() {
         width={spineWidth}
         height={dimensions.height}
         depth={spineDepth}
+        color={spineColor}
         pageCount={pageCount}
       />
       

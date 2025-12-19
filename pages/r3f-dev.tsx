@@ -7,6 +7,7 @@ import { Leva, useControls, button } from 'leva';
 import { Stats, PerformanceMonitor } from '@react-three/drei';
 import { useEffect } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 import { Scene } from '../components/Book/Scene';
 import { Book } from '../components/Book/Book';
 import { useBookStore } from '../stores/bookStore';
@@ -34,10 +35,11 @@ export default function R3FDevInterface() {
     setGlowIntensity,
     setCoverColor,
     setCoverOpacity,
-    setSpineColor,
     setFrontCoverText,
     setBackCoverText,
     setCoverTextColor,
+    setCoverOutlineColor,
+    setCoverOutlineWidth,
     setParticlesEnabled,
     setParticleIntensity,
     setDebug,
@@ -162,10 +164,6 @@ export default function R3FDevInterface() {
       step: 0.1,
       onChange: (v) => setCoverOpacity(v)
     },
-    spineColor: {
-      value: '#1a0f0a',
-      onChange: (v) => setSpineColor(v)
-    },
   });
   
   const text = useControls('Cover Text', {
@@ -173,6 +171,19 @@ export default function R3FDevInterface() {
       value: '#c9a876',
       label: 'Text Color',
       onChange: (v) => setCoverTextColor(v)
+    },
+    coverOutlineColor: {
+      value: '#c9a876',
+      label: 'Outline Color',
+      onChange: (v) => setCoverOutlineColor(v)
+    },
+    coverOutlineWidth: {
+      value: 3,
+      min: 0,
+      max: 10,
+      step: 0.5,
+      label: 'Outline Width',
+      onChange: (v) => setCoverOutlineWidth(v)
     },
     
     frontCoverText: {
@@ -294,6 +305,17 @@ export default function R3FDevInterface() {
         display: 'flex',
         gap: '10px'
       }}>
+        <Link href="/dev" style={{
+          padding: '8px 16px',
+          background: 'rgba(0,0,0,0.8)',
+          color: '#00ffcc',
+          textDecoration: 'none',
+          borderRadius: '4px',
+          fontFamily: 'monospace',
+          fontSize: '12px'
+        }}>
+          ← Old Interface
+        </Link>
         <div style={{
           padding: '8px 16px',
           background: 'rgba(0,0,0,0.8)',
@@ -303,7 +325,7 @@ export default function R3FDevInterface() {
           fontSize: '12px',
           fontWeight: 'bold'
         }}>
-          📖 Babel Catalogue
+          R3F Interface
         </div>
       </div>
       
@@ -342,7 +364,6 @@ export default function R3FDevInterface() {
             glowIntensity: bookState.glowIntensity,
             coverColor: bookState.coverColor,
             coverOpacity: bookState.coverOpacity,
-            spineColor: bookState.spineColor,
             frontCoverText: bookState.frontCoverText,
             backCoverText: bookState.backCoverText,
             coverTextColor: bookState.coverTextColor,

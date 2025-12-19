@@ -101,14 +101,14 @@ const initialState: BookConfig = {
   glowIntensity: 0,
   coverColor: '#2b1e16',
   coverOpacity: 1,
+  spineColor: '#1a0f0a',
   
   // Cover text
   frontCoverText: '',
   backCoverText: '',
   coverTextColor: '#c9a876',
   coverOutlineColor: '#c9a876',
-  coverOutlineWidth: 3, // Gold/beige default
-  coverTextColor: '#c9a876', // Gold/beige default
+  coverOutlineWidth: 3,
   
   // Features
   particlesEnabled: true,
@@ -305,6 +305,7 @@ export const useBookStore = create<BookState>((set, get) => ({
   setGlowIntensity: (intensity) => set({ glowIntensity: intensity }),
   setCoverColor: (color) => set({ coverColor: color }),
   setCoverOpacity: (opacity) => set({ coverOpacity: opacity }),
+  setSpineColor: (color) => set({ spineColor: color }),
   setFrontCoverText: (text) => set({ frontCoverText: text }),
   setBackCoverText: (text) => set({ backCoverText: text }),
   setCoverTextColor: (color) => set({ coverTextColor: color }),

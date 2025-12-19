@@ -29,6 +29,7 @@ export interface BookConfig {
   glowIntensity: number;
   coverColor: string;
   coverOpacity: number;
+  spineColor: string;
   
   // Cover text
   frontCoverText: string;
