@@ -171,25 +171,33 @@ export function Book() {
       />
       
       {/* Debug: Manual test page that flips */}
-      {testPageFlipAngle > 0 && (
-        <group 
-          position={[spineWidth / 2, 0, 0]} 
-          rotation={[0, -(testPageFlipAngle * Math.PI / 180), 0]}
-        >
-          {/* Page positioned so its EDGE is at pivot point (spine edge) */}
-          <mesh position={[dimensions.width / 2, 0, 0]}>
-            <planeGeometry args={[dimensions.width, dimensions.height]} />
-            <meshStandardMaterial
-              color="#ff0000"
-              transparent
-              opacity={0.8}
-              side={THREE.DoubleSide}
-              emissive="#ff0000"
-              emissiveIntensity={0.5}
-            />
-          </mesh>
-        </group>
-      )}
+      {testPageFlipAngle > 0 && (() => {
+        // Calculate page rotation between the two cover angles
+        // 0° = back cover angle (backHinge)
+        // 180° = front cover angle (-frontHinge)
+        const progress = testPageFlipAngle / 180; // 0 to 1
+        const pageRotation = backHinge + progress * (-frontHinge - backHinge);
+        
+        return (
+          <group 
+            position={[spineWidth / 2, 0, 0]} 
+            rotation={[0, pageRotation, 0]}
+          >
+            {/* Page positioned so its EDGE is at pivot point (spine edge) */}
+            <mesh position={[dimensions.width / 2, 0, 0]}>
+              <planeGeometry args={[dimensions.width, dimensions.height]} />
+              <meshStandardMaterial
+                color="#ff0000"
+                transparent
+                opacity={0.8}
+                side={THREE.DoubleSide}
+                emissive="#ff0000"
+                emissiveIntensity={0.5}
+              />
+            </mesh>
+          </group>
+        );
+      })()}
     </group>
   );
 }
