@@ -55,10 +55,10 @@ export function Cover({
         />
       </mesh>
       
-      {/* Floating text in front of cover - no background */}
+      {/* Floating text centered on cover, offset slightly forward */}
       {texture && (
         <mesh 
-          position={[width + 0.02, 0, 0]} // Offset in front of external face
+          position={[width / 2, 0, coverThickness / 2 + 0.01]} // Centered, offset in +Z
           rotation={[0, 0, 0]}
         >
           <planeGeometry args={[width * 0.9, height * 0.9]} />
