@@ -64,6 +64,7 @@ The development interface provides complete control over:
 ### Visual Appearance
 - **Pages**: Color, opacity, glow intensity, density
 - **Covers**: Color, opacity
+- **Spine**: Color
 - **Cover Text**: Front and back cover text (Roboto font), text color
 
 ### Effects
@@ -71,7 +72,7 @@ The development interface provides complete control over:
 - **Animations**: Open, close, flip pages, emotions, material morphing
 
 ### Live Configuration
-All settings are displayed as **JSON** in real-time (bottom-right corner) for easy export and reuse.
+All settings are displayed as **JSON** in real-time (bottom-left corner) for easy export and reuse.
 
 ---
 
@@ -133,6 +134,149 @@ All settings are displayed as **JSON** in real-time (bottom-right corner) for ea
 
 /pages/
   - index.tsx      # Main interface (R3F dev)
+```
+
+---
+
+## 📦 Embedding the Book in Your Project
+
+### Installation
+
+1. **Copy the required files** to your React/Next.js project:
+```
+/components/Book/
+/stores/bookStore.ts
+/hooks/useCoverTexture.ts
+/types/book.ts
+```
+
+2. **Install dependencies**:
+```bash
+npm install @react-three/fiber @react-three/drei three zustand
+```
+
+### Basic Usage
+
+```tsx
+import { Canvas } from '@react-three/fiber';
+import { Book } from './components/Book/Book';
+import { Scene } from './components/Book/Scene';
+import { useBookStore } from './stores/bookStore';
+
+function MyApp() {
+  return (
+    <Canvas camera={{ position: [6, 4, 10], fov: 45 }}>
+      <Scene>
+        <Book />
+      </Scene>
+    </Canvas>
+  );
+}
+```
+
+### Controlling the Book Programmatically
+
+Access the Zustand store to control the book:
+
+```tsx
+import { useBookStore } from './stores/bookStore';
+
+function BookController() {
+  const { 
+    openBook, 
+    closeBook, 
+    flipPage, 
+    triggerEmotion,
+    setParticleIntensity 
+  } = useBookStore();
+
+  return (
+    <div>
+      <button onClick={() => openBook()}>Open Book</button>
+      <button onClick={() => flipPage('forward')}>Next Page</button>
+      <button onClick={() => triggerEmotion('focus')}>Focus</button>
+    </div>
+  );
+}
+```
+
+### Configuration
+
+Set initial configuration via the store:
+
+```tsx
+import { useBookStore } from './stores/bookStore';
+
+// In your component or initialization
+const { 
+  setDimensions,
+  setCoverColor,
+  setFrontCoverText,
+  setParticlesEnabled 
+} = useBookStore();
+
+// Configure book
+setDimensions({ width: 3, height: 4 });
+setCoverColor('#2b1e16');
+setFrontCoverText('My Book Title');
+setParticlesEnabled(true);
+```
+
+### Available Actions
+
+**Book Control:**
+- `openBook()` - Opens the book covers
+- `closeBook()` - Closes the book covers
+- `flipPage(direction)` - Flips single page ('forward' | 'backward')
+- `flipPages(count, direction)` - Flips multiple pages
+- `toggleContinuousFlip(direction)` - Starts/stops continuous flipping
+
+**Visual Effects:**
+- `triggerEmotion(emotion)` - Triggers emotion ('focus' | 'drift' | 'paradox')
+- `morphMaterial(material)` - Changes material ('metal' | 'leather' | 'glass')
+- `setParticleIntensity(value)` - Sets particle intensity (0-1)
+- `setGlowIntensity(value)` - Sets page glow (0-2)
+
+**Appearance:**
+- `setCoverColor(color)` - Sets cover color
+- `setSpineColor(color)` - Sets spine color
+- `setPageColor(color)` - Sets page color
+- `setFrontCoverText(text)` - Sets front cover text
+- `setBackCoverText(text)` - Sets back cover text
+- `setCoverTextColor(color)` - Sets text color
+
+**Positioning:**
+- `setDimensions({ width, height })` - Sets book dimensions
+- `setSpineRotation(angle)` - Rotates the spine
+- `setTilt(angle)` - Tilts the book horizontally
+- `setScale(scale)` - Scales the entire book
+- `setBothHinges(angle)` - Opens/closes both covers
+
+### Example: AI Integration
+
+```tsx
+function AIBookInterface() {
+  const { triggerEmotion, setParticleIntensity, flipPages } = useBookStore();
+
+  const handleAIResponse = (response) => {
+    if (response.includes('error')) {
+      triggerEmotion('paradox');
+    } else if (response.includes('searching')) {
+      setParticleIntensity(0.9);
+      flipPages(5, 'forward');
+    } else if (response.confidence > 0.8) {
+      triggerEmotion('focus');
+    }
+  };
+
+  return (
+    <Canvas camera={{ position: [6, 4, 10], fov: 45 }}>
+      <Scene>
+        <Book />
+      </Scene>
+    </Canvas>
+  );
+}
 ```
 
 ---
