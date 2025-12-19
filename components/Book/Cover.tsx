@@ -50,7 +50,7 @@ export function Cover({
         <meshStandardMaterial
           color={color}
           map={texture}
-          transparent={opacity < 1}
+          transparent={true}
           opacity={opacity}
           side={THREE.DoubleSide}
         />

@@ -22,8 +22,9 @@ export function useCoverTexture(
     
     if (!ctx) return null;
     
-    // Clear background - let cover color show through
-    ctx.clearRect(0, 0, 512, 512);
+    // Solid dark background so text is visible
+    ctx.fillStyle = '#1a0f0a';
+    ctx.fillRect(0, 0, 512, 512);
     
     // Setup text style
     ctx.fillStyle = textColor;
