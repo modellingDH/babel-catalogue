@@ -47,6 +47,8 @@ export interface BookConfig {
   // Page flip animation
   flippingPageIndex: number | null; // Which page is currently flipping
   flipProgress: number; // 0 to 1, animation progress
+  isFlippingContinuously: boolean; // Continuous flip mode
+  continuousDirection: 'forward' | 'backward' | null; // Direction of continuous flip
 }
 
 export interface PageProps {

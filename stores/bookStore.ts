@@ -45,6 +45,7 @@ interface BookState extends BookConfig {
   setPageCount: (count: number) => void;
   setCurrentPage: (page: number) => void;
   flipPage: (direction: 'forward' | 'backward') => void;
+  toggleContinuousFlip: (direction: 'forward' | 'backward') => void;
   setDimensions: (dimensions: Partial<BookDimensions>) => void;
   setSpineRotation: (rotation: number) => void;
   setTilt: (tilt: number) => void;
@@ -119,6 +120,8 @@ const initialState: BookConfig = {
   // Page flip animation
   flippingPageIndex: null,
   flipProgress: 0,
+  isFlippingContinuously: false,
+  continuousDirection: null,
 };
 
 export const useBookStore = create<BookState>((set, get) => ({
@@ -152,7 +155,7 @@ export const useBookStore = create<BookState>((set, get) => ({
   
   flipPage: (direction) => {
     const state = get();
-    const { currentPage, pageCount, flippingPageIndex } = state;
+    const { currentPage, pageCount, flippingPageIndex, isFlippingContinuously } = state;
     
     // Don't start new flip if one is in progress
     if (flippingPageIndex !== null) {
@@ -190,6 +193,15 @@ export const useBookStore = create<BookState>((set, get) => ({
           // Animation complete - NOW update currentPage and reset
           set({ currentPage: newPage, flippingPageIndex: null, flipProgress: 0 });
           console.log('✅ Flip complete:', newPage);
+          
+          // If continuous flip is on, start next flip
+          if (get().isFlippingContinuously && get().continuousDirection === 'forward') {
+            setTimeout(() => {
+              if (get().isFlippingContinuously && get().continuousDirection === 'forward') {
+                get().flipPage('forward');
+              }
+            }, 100);
+          }
         }
       };
       
@@ -227,10 +239,37 @@ export const useBookStore = create<BookState>((set, get) => ({
           // Animation complete - NOW update currentPage and reset
           set({ currentPage: newPage, flippingPageIndex: null, flipProgress: 0 });
           console.log('✅ Flip BACKWARD complete:', newPage);
+          
+          // If continuous flip is on, start next flip
+          if (get().isFlippingContinuously && get().continuousDirection === 'backward') {
+            setTimeout(() => {
+              if (get().isFlippingContinuously && get().continuousDirection === 'backward') {
+                get().flipPage('backward');
+              }
+            }, 100);
+          }
         }
       };
       
       requestAnimationFrame(animate);
+    }
+  },
+  
+  toggleContinuousFlip: (direction) => {
+    const state = get();
+    const { isFlippingContinuously, continuousDirection } = state;
+    
+    if (isFlippingContinuously && continuousDirection === direction) {
+      // Toggle off
+      console.log('⏸️ Stop continuous flip');
+      set({ isFlippingContinuously: false, continuousDirection: null });
+    } else {
+      // Toggle on (and turn off opposite direction)
+      console.log('▶️ Start continuous flip', direction);
+      set({ isFlippingContinuously: true, continuousDirection: direction });
+      
+      // Start the first flip
+      get().flipPage(direction);
     }
   },
   

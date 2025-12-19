@@ -18,6 +18,10 @@ export default function R3FDevInterface() {
     setPageCount,
     setCurrentPage,
     flipPage,
+    flipPages,
+    toggleContinuousFlip,
+    isFlippingContinuously,
+    continuousDirection,
     setDimensions,
     setSpineRotation,
     setTilt,
@@ -65,9 +69,6 @@ export default function R3FDevInterface() {
       label: 'Current Page (book opens here)',
       onChange: (v) => setCurrentPage(v)
     },
-    
-    'Flip Forward': button(() => flipPage('forward'), { label: '→ Next Page' }),
-    'Flip Backward': button(() => flipPage('backward'), { label: '← Previous Page' }),
     
     // Dimensions (spine depth auto-calculated from pageCount)
     dimensions: {
@@ -216,8 +217,26 @@ export default function R3FDevInterface() {
   useControls('📖 Animated Actions', {
     'Open Book': button(() => openBook(1000), { label: '📖 Open (1s)' }),
     'Close Book': button(() => closeBook(1000), { label: '📕 Close (1s)' }),
-    'Flip 5 Forward': button(() => flipPages(5, 'forward', 200), { label: '→→ Flip 5 Pages' }),
-    'Flip 5 Backward': button(() => flipPages(5, 'backward', 200), { label: '←← Flip 5 Pages' }),
+    
+    // Page flipping
+    'Flip Forward': button(() => flipPage('forward'), { label: '→ Next Page' }),
+    'Flip Backward': button(() => flipPage('backward'), { label: '← Previous Page' }),
+    'Flip 5 Forward': button(() => flipPages(5, 'forward'), { label: '→→ Flip 5 Pages' }),
+    'Flip 5 Backward': button(() => flipPages(5, 'backward'), { label: '←← Flip 5 Pages' }),
+    
+    // Continuous flipping
+    'Continuous Forward': button(
+      () => toggleContinuousFlip('forward'),
+      { 
+        label: isFlippingContinuously && continuousDirection === 'forward' ? '⏸️ Stop Forward' : '▶️ Flip Forward Loop'
+      }
+    ),
+    'Continuous Backward': button(
+      () => toggleContinuousFlip('backward'),
+      { 
+        label: isFlippingContinuously && continuousDirection === 'backward' ? '⏸️ Stop Backward' : '◀️ Flip Backward Loop'
+      }
+    ),
   });
   
   // Emotions (from README concept)
