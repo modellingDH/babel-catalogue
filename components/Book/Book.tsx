@@ -122,8 +122,8 @@ export function Book() {
         {/* Pages positioned at inside face of cover (toward the front) */}
         <group position={[0, 0, coverThickness / 2]}>
           {Array.from({ length: currentPage }, (_, i) => {
-            // Skip the page that's currently flipping
-            if (i === flippingPageIndex) return null;
+            // Skip the page that's currently flipping forward
+            if (i === flippingPageIndex && flipProgress > 0) return null;
             
             return (
               <Page
@@ -173,25 +173,28 @@ export function Book() {
       </group>
       
       {/* Flipping page - rendered separately with animation */}
-      {flippingPageIndex !== null && (() => {
+      {flippingPageIndex !== null && flipProgress > 0 && (() => {
         // Calculate page rotation between cover angles
         // flipProgress goes from 0 (back) to 1 (front)
         const pageRotation = backHinge + flipProgress * (-frontHinge - backHinge);
+        
+        console.log(`Rendering flipping page at rotation: ${(pageRotation * 180 / Math.PI).toFixed(1)}°`);
         
         return (
           <group 
             position={[spineWidth / 2, 0, 0]} 
             rotation={[0, pageRotation, 0]}
           >
-            <mesh position={[dimensions.width * 0.93 / 2, 0, 0]}>
-              <planeGeometry args={[dimensions.width * 0.93, dimensions.height * 0.95]} />
+            {/* Make it bright and obvious for debugging */}
+            <mesh position={[dimensions.width / 2, 0, 0]}>
+              <planeGeometry args={[dimensions.width, dimensions.height]} />
               <meshStandardMaterial
-                color={pageColor}
+                color="#ffff00"  // BRIGHT YELLOW for debugging
                 transparent
-                opacity={pageOpacity}
+                opacity={0.9}
                 side={THREE.DoubleSide}
-                emissive={pageColor}
-                emissiveIntensity={glowIntensity}
+                emissive="#ffff00"
+                emissiveIntensity={1.0}
                 depthWrite={false}
               />
             </mesh>

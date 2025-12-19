@@ -170,7 +170,7 @@ export const useBookStore = create<BookState>((set, get) => ({
       
       console.log('📄 Start flip forward:', currentPage, '→', newPage);
       
-      // Start animation
+      // Start animation - DON'T update currentPage yet
       set({ flippingPageIndex: currentPage, flipProgress: 0 });
       
       // Animate flip progress
@@ -182,11 +182,12 @@ export const useBookStore = create<BookState>((set, get) => ({
         const progress = Math.min(elapsed / duration, 1);
         
         set({ flipProgress: progress });
+        console.log(`  Progress: ${(progress * 100).toFixed(1)}%`);
         
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
-          // Animation complete - update currentPage and reset
+          // Animation complete - NOW update currentPage and reset
           set({ currentPage: newPage, flippingPageIndex: null, flipProgress: 0 });
           console.log('✅ Flip complete:', newPage);
         }
