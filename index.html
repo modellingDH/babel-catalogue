@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>The Babel Catalogue - Sonic Controller v6.0</title>
+    <style>
+        body { margin: 0; background: #050505; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
+        #ui { position: absolute; top: 20px; left: 20px; z-index: 100; background: rgba(10,10,10,0.95); padding: 24px; border: 1px solid #2a2a2a; width: 280px; border-radius: 8px; backdrop-filter: blur(15px); max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 3px; border-bottom: 1px solid #2a2a2a; padding-bottom: 12px; margin: 0 0 18px 0; color: #666; }
+        .group { margin-bottom: 18px; }
+        label { display: block; font-size: 9px; text-transform: uppercase; color: #555; margin-bottom: 6px; letter-spacing: 1px; }
+        button { width: 100%; padding: 10px; background: #1a1a1a; color: #ccc; border: 1px solid #333; margin-bottom: 5px; cursor: pointer; font-size: 10px; transition: 0.2s; border-radius: 4px; text-transform: uppercase; }
+        button:hover { background: #222; border-color: #00ffcc; color: #fff; }
+        button.danger { border-color: #441111; color: #ff5555; }
+        button.danger:hover { background: #330000; border-color: #ff0055; }
+        input, select { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 8px; font-size: 11px; box-sizing: border-box; border-radius: 4px; outline: none; }
+        input:focus { border-color: #00ffcc; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        #audio-hint { font-size: 9px; color: #00ffcc; margin-bottom: 10px; display: block; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div id="ui">
+    <h3>Babel Catalogue</h3>
+    <span id="audio-hint">Click anywhere to enable Ethereal Audio</span>
+    
+    <div class="group">
+        <label>Identity (Catalogue Volume)</label>
+        <input type="text" id="titleInput" value="Encyclopedia" oninput="updateTitle(this.value)">
+    </div>
+
+    <div class="group">
+        <label>Cover Material</label>
+        <select onchange="morphMaterial(this.value)">
+            <option value="leather">Ancient Leather</option>
+            <option value="metal">Polished Tungsten</option>
+            <option value="wood">Black Ebony</option>
+            <option value="glass">Ghost Glass</option>
+        </select>
+    </div>
+
+    <div class="group">
+        <label>Data Stream Intensity</label>
+        <input type="range" min="0" max="500" value="150" oninput="particleIntensity = this.value; updateStreamHum()">
+        <input type="color" value="#00ffcc" oninput="updateParticleColor(this.value)">
+    </div>
+
+    <div class="group">
+        <label>Physical & Emotional State</label>
+        <button onclick="toggleBook()">Open / Close Toggle</button>
+        <div class="row">
+            <button onclick="triggerEmotion('focus')">Focus</button>
+            <button onclick="triggerEmotion('drift')">Drift</button>
+        </div>
+        <button class="danger" onclick="triggerEmotion('glitch')">Trigger Paradox (Glitch)</button>
+    </div>
+    </div>
+
+    <script type="module">
+        import { createBabelCatalogue } from './babelCatalogue.js';
+
+        const titleInput = document.getElementById('titleInput');
+
+        // Create the core Babel Catalogue engine
+        const catalogue = createBabelCatalogue({
+            container: document.body,
+            initialTitle: titleInput.value || 'Encyclopedia',
+            initialParticleIntensity: 150,
+        });
+
+        // Wire the HTML controls to the module API
+        window.updateTitle = (text) => catalogue.updateTitle(text);
+        window.toggleBook = () => catalogue.toggleBook();
+        window.morphMaterial = (mode) => catalogue.morphMaterial(mode);
+        window.triggerEmotion = (type) => catalogue.triggerEmotion(type);
+        window.updateParticleColor = (hex) => catalogue.setParticleColor(hex);
+        window.particleIntensity = 150;
+        window.updateStreamHum = () =>
+            catalogue.setParticleIntensity(window.particleIntensity);
+
+        // Initialize with starting title / state
+        window.updateTitle(titleInput.value);
+    </script>
+</body>
+</html>
