@@ -71,8 +71,8 @@ export function Cover({
           <meshStandardMaterial
             map={texture}
             transparent={true}
-            opacity={opacity}
-            side={THREE.FrontSide} // Only visible from front
+            opacity={1.0} // Text always fully opaque, independent of cover opacity
+            side={THREE.DoubleSide} // Visible from both sides
             depthWrite={false}
             alphaTest={0.1} // Only render non-transparent parts
           />
