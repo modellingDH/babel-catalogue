@@ -44,7 +44,6 @@ export default function R3FDevInterface() {
     // Animated actions
     openBook,
     closeBook,
-    flipPages,
     triggerEmotion,
     morphMaterial,
   } = useBookStore();
