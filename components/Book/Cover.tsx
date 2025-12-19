@@ -35,45 +35,6 @@ export function Cover({
   // Rotation direction: front cover uses negative (opens forward), back uses positive
   const hingeRotation = side === 'front' ? -hinge : hinge;
   
-  // Create materials array for box geometry faces
-  // Order: [right(+X), left(-X), top(+Y), bottom(-Y), front(+Z), back(-Z)]
-  const materials = [
-    // Right face (+X) - OUTSIDE - with texture (text shows if texture exists, otherwise cover color)
-    new THREE.MeshStandardMaterial({
-      color: texture ? '#ffffff' : color, // White when texture exists to show it properly
-      map: texture,
-      transparent: opacity < 1,
-      opacity: opacity,
-    }),
-    // Left face (-X) - INSIDE - plain cover color
-    new THREE.MeshStandardMaterial({
-      color: color,
-      transparent: opacity < 1,
-      opacity: opacity,
-    }),
-    // All edges - same as cover color
-    new THREE.MeshStandardMaterial({
-      color: color,
-      transparent: opacity < 1,
-      opacity: opacity,
-    }),
-    new THREE.MeshStandardMaterial({
-      color: color,
-      transparent: opacity < 1,
-      opacity: opacity,
-    }),
-    new THREE.MeshStandardMaterial({
-      color: color,
-      transparent: opacity < 1,
-      opacity: opacity,
-    }),
-    new THREE.MeshStandardMaterial({
-      color: color,
-      transparent: opacity < 1,
-      opacity: opacity,
-    }),
-  ];
-  
   return (
     <group 
       position={[pivotX, 0, pivotZ]} 
@@ -84,9 +45,15 @@ export function Cover({
         position={[width / 2, 0, 0]} 
         castShadow 
         receiveShadow
-        material={materials}
       >
         <boxGeometry args={[width, height, coverThickness]} />
+        <meshStandardMaterial
+          color={color}
+          map={texture}
+          transparent={opacity < 1}
+          opacity={opacity}
+          side={THREE.DoubleSide}
+        />
       </mesh>
     </group>
   );
