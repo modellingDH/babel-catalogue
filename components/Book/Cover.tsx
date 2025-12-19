@@ -55,10 +55,16 @@ export function Cover({
         />
       </mesh>
       
-      {/* Floating text centered on cover, offset slightly forward */}
+      {/* Floating text centered on cover, offset outward from pages */}
       {texture && (
         <mesh 
-          position={[width / 2, 0, coverThickness / 2 + 0.01]} // Centered, offset in +Z
+          position={[
+            width / 2, 
+            0, 
+            side === 'front' 
+              ? coverThickness / 2 + 0.01   // Front: offset in +Z (away from pages)
+              : -(coverThickness / 2 + 0.01) // Back: offset in -Z (away from pages)
+          ]}
           rotation={[0, 0, 0]}
         >
           <planeGeometry args={[width * 0.9, height * 0.9]} />
