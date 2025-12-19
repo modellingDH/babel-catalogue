@@ -51,27 +51,24 @@ export function Cover({
       transparent: opacity < 1,
       opacity: opacity,
     }),
-    // Top edge (+Y) - cover color with black outline
+    // All edges - same as cover color
     new THREE.MeshStandardMaterial({
-      color: '#000000',
+      color: color,
       transparent: opacity < 1,
       opacity: opacity,
     }),
-    // Bottom edge (-Y) - black outline
     new THREE.MeshStandardMaterial({
-      color: '#000000',
+      color: color,
       transparent: opacity < 1,
       opacity: opacity,
     }),
-    // Front edge (+Z) - black outline
     new THREE.MeshStandardMaterial({
-      color: '#000000',
+      color: color,
       transparent: opacity < 1,
       opacity: opacity,
     }),
-    // Back edge (-Z) - black outline
     new THREE.MeshStandardMaterial({
-      color: '#000000',
+      color: color,
       transparent: opacity < 1,
       opacity: opacity,
     }),
