@@ -38,11 +38,11 @@ export function Cover({
   // Create materials array for box geometry faces
   // Order: [right(+X), left(-X), top(+Y), bottom(-Y), front(+Z), back(-Z)]
   const materials = [
-    // Right face (+X) - OUTSIDE - with texture and text overlaid on cover color
+    // Right face (+X) - OUTSIDE - with texture (text shows if texture exists, otherwise cover color)
     new THREE.MeshStandardMaterial({
-      color: color, // Cover color as base
+      color: texture ? '#ffffff' : color, // White when texture exists to show it properly
       map: texture,
-      transparent: true,
+      transparent: opacity < 1,
       opacity: opacity,
     }),
     // Left face (-X) - INSIDE - plain cover color
@@ -51,27 +51,27 @@ export function Cover({
       transparent: opacity < 1,
       opacity: opacity,
     }),
-    // Top edge (+Y) - outline color
+    // Top edge (+Y) - cover color with black outline
     new THREE.MeshStandardMaterial({
-      color: outlineColor,
+      color: '#000000',
       transparent: opacity < 1,
       opacity: opacity,
     }),
-    // Bottom edge (-Y) - outline color
+    // Bottom edge (-Y) - black outline
     new THREE.MeshStandardMaterial({
-      color: outlineColor,
+      color: '#000000',
       transparent: opacity < 1,
       opacity: opacity,
     }),
-    // Front edge (+Z) - outline color
+    // Front edge (+Z) - black outline
     new THREE.MeshStandardMaterial({
-      color: outlineColor,
+      color: '#000000',
       transparent: opacity < 1,
       opacity: opacity,
     }),
-    // Back edge (-Z) - outline color
+    // Back edge (-Z) - black outline
     new THREE.MeshStandardMaterial({
-      color: outlineColor,
+      color: '#000000',
       transparent: opacity < 1,
       opacity: opacity,
     }),
