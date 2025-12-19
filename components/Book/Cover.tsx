@@ -41,7 +41,6 @@ export function Cover({
       rotation={[0, hingeRotation, 0]}
     >
       {/* Cover extends from pivot (spine edge) outward */}
-      {/* Cover with plain color */}
       <mesh 
         position={[width / 2, 0, 0]} 
         castShadow 
@@ -50,28 +49,12 @@ export function Cover({
         <boxGeometry args={[width, height, coverThickness]} />
         <meshStandardMaterial
           color={color}
-          transparent={opacity < 1}
+          map={texture}
+          transparent={true}
           opacity={opacity}
           side={THREE.DoubleSide}
         />
       </mesh>
-      
-      {/* Text overlay on FRONT side only */}
-      {texture && (
-        <mesh 
-          position={[width / 2, 0, 0.001]} // Slightly offset to avoid z-fighting
-          castShadow
-        >
-          <planeGeometry args={[width, height]} />
-          <meshStandardMaterial
-            map={texture}
-            transparent={true}
-            opacity={opacity}
-            side={THREE.FrontSide}
-            depthWrite={false}
-          />
-        </mesh>
-      )}
     </group>
   );
 }
