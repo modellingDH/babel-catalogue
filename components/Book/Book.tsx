@@ -36,6 +36,7 @@ export function Book() {
     particlesEnabled,
     particleIntensity,
     debug,
+    testPageFlipAngle,
   } = useBookStore();
   
   // Spine parameters - FIXED for proper book physics
@@ -168,6 +169,26 @@ export function Book() {
           depth: spineDepth
         }}
       />
+      
+      {/* Debug: Manual test page that flips */}
+      {testPageFlipAngle > 0 && (
+        <group position={[spineWidth / 2, 0, 0]}>
+          <mesh 
+            position={[pageWidth / 2, 0, 0]} 
+            rotation={[0, -(testPageFlipAngle * Math.PI / 180), 0]}
+          >
+            <planeGeometry args={[pageWidth, pageHeight]} />
+            <meshStandardMaterial
+              color="#ff0000"
+              transparent
+              opacity={0.8}
+              side={THREE.DoubleSide}
+              emissive="#ff0000"
+              emissiveIntensity={0.5}
+            />
+          </mesh>
+        </group>
+      )}
     </group>
   );
 }

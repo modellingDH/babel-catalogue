@@ -36,6 +36,7 @@ export default function R3FDevInterface() {
     setParticlesEnabled,
     setParticleIntensity,
     setDebug,
+    setTestPageFlipAngle,
     // Animated actions
     openBook,
     closeBook,
@@ -196,6 +197,18 @@ export default function R3FDevInterface() {
     debug: {
       value: false,
       onChange: (v) => setDebug(v)
+    },
+  });
+  
+  // Debug: Manual Page Flip Test
+  useControls('🔧 Debug: Manual Page Flip', {
+    'Test Page Flip Angle': {
+      value: 0,
+      min: 0,
+      max: 180,
+      step: 1,
+      label: '📄 Flip Angle (0=back, 180=front)',
+      onChange: (v) => setTestPageFlipAngle(v)
     },
   });
   

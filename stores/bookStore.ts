@@ -64,6 +64,7 @@ interface BookState extends BookConfig {
   setParticleIntensity: (intensity: number) => void;
   setConfidenceScore: (score: number) => void;
   setDebug: (debug: boolean) => void;
+  setTestPageFlipAngle: (angle: number) => void;
   reset: () => void;
   
   // Animated actions
@@ -113,6 +114,7 @@ const initialState: BookConfig = {
   
   // Debug
   debug: false,
+  testPageFlipAngle: 0, // 0 = back cover, 180 = front cover
 };
 
 export const useBookStore = create<BookState>((set, get) => ({
@@ -197,6 +199,10 @@ export const useBookStore = create<BookState>((set, get) => ({
   setParticleIntensity: (intensity) => set({ particleIntensity: intensity }),
   setConfidenceScore: (score) => set({ confidenceScore: score }),
   setDebug: (debug) => set({ debug: debug }),
+  setTestPageFlipAngle: (angle) => {
+    set({ testPageFlipAngle: angle });
+    console.log('📄 Test page flip angle:', angle.toFixed(1), '°');
+  },
   reset: () => set(initialState),
   
   // ========== ANIMATED ACTIONS ==========

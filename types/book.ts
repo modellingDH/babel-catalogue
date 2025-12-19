@@ -42,6 +42,7 @@ export interface BookConfig {
   
   // Debug
   debug: boolean;
+  testPageFlipAngle: number; // Debug: 0 = back cover, 180 = front cover
 }
 
 export interface PageProps {
