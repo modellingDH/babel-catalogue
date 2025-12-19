@@ -4,8 +4,44 @@
 import { create } from 'zustand';
 import { BookConfig, BookDimensions } from '../types/book';
 
+// Animation helper - simple easing for smooth transitions
+const animateValue = (
+  from: number,
+  to: number,
+  duration: number,
+  setter: (value: number) => void,
+  easing: (t: number) => number = (t) => t // Linear by default
+) => {
+  const startTime = performance.now();
+  
+  const animate = (currentTime: number) => {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const easedProgress = easing(progress);
+    const value = from + (to - from) * easedProgress;
+    
+    setter(value);
+    
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    }
+  };
+  
+  requestAnimationFrame(animate);
+};
+
+// Easing functions
+const easeInOutCubic = (t: number) => {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+};
+
+const easeOutElastic = (t: number) => {
+  const c4 = (2 * Math.PI) / 3;
+  return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
+};
+
 interface BookState extends BookConfig {
-  // Actions
+  // Direct state setters
   setPageCount: (count: number) => void;
   setCurrentPage: (page: number) => void;
   flipPage: (direction: 'forward' | 'backward') => void;
@@ -15,7 +51,7 @@ interface BookState extends BookConfig {
   setScale: (scale: number) => void;
   setFrontHinge: (hinge: number) => void;
   setBackHinge: (hinge: number) => void;
-  setBothHinges: (hinge: number) => void; // Symmetric open/close
+  setBothHinges: (hinge: number) => void;
   setPageOpacity: (opacity: number) => void;
   setPageColor: (color: string) => void;
   setGlowIntensity: (intensity: number) => void;
@@ -29,6 +65,13 @@ interface BookState extends BookConfig {
   setConfidenceScore: (score: number) => void;
   setDebug: (debug: boolean) => void;
   reset: () => void;
+  
+  // Animated actions
+  openBook: (duration?: number) => void;
+  closeBook: (duration?: number) => void;
+  flipPages: (count: number, direction: 'forward' | 'backward', duration?: number) => void;
+  triggerEmotion: (emotion: 'focus' | 'drift' | 'paradox') => void;
+  morphMaterial: (material: 'leather' | 'metal' | 'glass') => void;
 }
 
 const initialState: BookConfig = {
@@ -151,4 +194,195 @@ export const useBookStore = create<BookState>((set, get) => ({
   setConfidenceScore: (score) => set({ confidenceScore: score }),
   setDebug: (debug) => set({ debug: debug }),
   reset: () => set(initialState),
+  
+  // ========== ANIMATED ACTIONS ==========
+  
+  /**
+   * Open book - smoothly animate both covers to open position
+   */
+  openBook: (duration = 1000) => {
+    const current = get();
+    const targetAngle = Math.PI / 2; // 90 degrees
+    
+    animateValue(
+      current.frontHinge,
+      targetAngle,
+      duration,
+      (value) => set({ frontHinge: value }),
+      easeInOutCubic
+    );
+    
+    animateValue(
+      current.backHinge,
+      targetAngle,
+      duration,
+      (value) => set({ backHinge: value }),
+      easeInOutCubic
+    );
+    
+    // Increase particle intensity when opening
+    animateValue(
+      current.particleIntensity,
+      0.7,
+      duration,
+      (value) => set({ particleIntensity: value }),
+      easeInOutCubic
+    );
+  },
+  
+  /**
+   * Close book - smoothly animate both covers to closed position
+   */
+  closeBook: (duration = 1000) => {
+    const current = get();
+    
+    animateValue(
+      current.frontHinge,
+      0,
+      duration,
+      (value) => set({ frontHinge: value }),
+      easeInOutCubic
+    );
+    
+    animateValue(
+      current.backHinge,
+      0,
+      duration,
+      (value) => set({ backHinge: value }),
+      easeInOutCubic
+    );
+    
+    // Decrease particle intensity when closing
+    animateValue(
+      current.particleIntensity,
+      0,
+      duration,
+      (value) => set({ particleIntensity: value }),
+      easeInOutCubic
+    );
+    
+    // Reset glow
+    animateValue(
+      current.glowIntensity,
+      0,
+      duration,
+      (value) => set({ glowIntensity: value }),
+      easeInOutCubic
+    );
+  },
+  
+  /**
+   * Flip multiple pages with animation
+   */
+  flipPages: (count, direction, duration = 50) => {
+    const { currentPage, pageCount } = get();
+    let flipped = 0;
+    
+    const flipNext = () => {
+      if (flipped >= count) return;
+      
+      if (direction === 'forward') {
+        const newPage = (currentPage + flipped + 1) % pageCount;
+        set({ currentPage: newPage });
+      } else {
+        const newPage = ((currentPage - flipped - 1) + pageCount) % pageCount;
+        set({ currentPage: newPage });
+      }
+      
+      flipped++;
+      
+      if (flipped < count) {
+        setTimeout(flipNext, duration);
+      }
+    };
+    
+    flipNext();
+  },
+  
+  /**
+   * Trigger emotional states (from README concept)
+   */
+  triggerEmotion: (emotion) => {
+    const current = get();
+    
+    switch (emotion) {
+      case 'focus':
+        // Book rises and zooms toward center
+        animateValue(current.scale, 1.3, 800, (v) => set({ scale: v }), easeInOutCubic);
+        animateValue(current.tilt, 0, 800, (v) => set({ tilt: v }), easeInOutCubic);
+        animateValue(current.glowIntensity, 1.5, 800, (v) => set({ glowIntensity: v }), easeInOutCubic);
+        animateValue(current.particleIntensity, 1.0, 800, (v) => set({ particleIntensity: v }), easeInOutCubic);
+        break;
+        
+      case 'drift':
+        // Book tilts and descends into periphery
+        animateValue(current.scale, 0.7, 1200, (v) => set({ scale: v }), easeInOutCubic);
+        animateValue(current.tilt, -0.5, 1200, (v) => set({ tilt: v }), easeInOutCubic);
+        animateValue(current.glowIntensity, 0.2, 1200, (v) => set({ glowIntensity: v }), easeInOutCubic);
+        animateValue(current.particleIntensity, 0.1, 1200, (v) => set({ particleIntensity: v }), easeInOutCubic);
+        break;
+        
+      case 'paradox':
+        // Violent tremor effect - rapid position shake
+        const originalRotation = current.spineRotation;
+        const originalTilt = current.tilt;
+        const shakeIntensity = 0.15;
+        const shakeCount = 10;
+        const shakeDuration = 50;
+        
+        let shakes = 0;
+        const shake = () => {
+          if (shakes >= shakeCount) {
+            // Return to original position
+            set({ spineRotation: originalRotation, tilt: originalTilt });
+            return;
+          }
+          
+          const randomRotation = originalRotation + (Math.random() - 0.5) * shakeIntensity;
+          const randomTilt = originalTilt + (Math.random() - 0.5) * shakeIntensity;
+          set({ spineRotation: randomRotation, tilt: randomTilt });
+          
+          shakes++;
+          setTimeout(shake, shakeDuration);
+        };
+        
+        shake();
+        
+        // Flash glow
+        animateValue(current.glowIntensity, 2.0, 200, (v) => set({ glowIntensity: v }));
+        setTimeout(() => {
+          animateValue(2.0, 0.3, 300, (v) => set({ glowIntensity: v }));
+        }, 200);
+        break;
+    }
+  },
+  
+  /**
+   * Morph cover material appearance (from README concept)
+   */
+  morphMaterial: (material) => {
+    const current = get();
+    
+    switch (material) {
+      case 'leather':
+        // Dark, matte, organic - humanities/lore
+        set({ coverColor: '#2b1e16', coverOpacity: 1.0 });
+        animateValue(current.glowIntensity, 0.1, 500, (v) => set({ glowIntensity: v }), easeInOutCubic);
+        break;
+        
+      case 'metal':
+        // Reflective, cold, hard - scientific/logical
+        set({ coverColor: '#556b7d', coverOpacity: 1.0 });
+        animateValue(current.glowIntensity, 0.8, 500, (v) => set({ glowIntensity: v }), easeInOutCubic);
+        animateValue(current.particleIntensity, 0.9, 500, (v) => set({ particleIntensity: v }), easeInOutCubic);
+        break;
+        
+      case 'glass':
+        // Transparent, vulnerable - ultimate truth
+        set({ coverColor: '#d0e8f2', coverOpacity: 0.3 });
+        animateValue(current.glowIntensity, 1.8, 500, (v) => set({ glowIntensity: v }), easeInOutCubic);
+        animateValue(current.particleIntensity, 1.0, 500, (v) => set({ particleIntensity: v }), easeInOutCubic);
+        break;
+    }
+  },
 }));

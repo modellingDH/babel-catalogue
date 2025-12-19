@@ -36,6 +36,12 @@ export default function R3FDevInterface() {
     setParticlesEnabled,
     setParticleIntensity,
     setDebug,
+    // Animated actions
+    openBook,
+    closeBook,
+    flipPages,
+    triggerEmotion,
+    morphMaterial,
   } = useBookStore();
   
   // Leva controls - automatic GUI
@@ -197,6 +203,58 @@ export default function R3FDevInterface() {
     debug: {
       value: false,
       onChange: (v) => setDebug(v)
+    },
+  });
+  
+  // Animated Actions
+  const actions = useControls('📖 Animated Actions', {
+    'Open Book': {
+      value: () => openBook(1000),
+      label: '📖 Open (1s)'
+    },
+    'Close Book': {
+      value: () => closeBook(1000),
+      label: '📕 Close (1s)'
+    },
+    'Flip 5 Forward': {
+      value: () => flipPages(5, 'forward', 50),
+      label: '→→ Flip 5 Pages Forward'
+    },
+    'Flip 5 Backward': {
+      value: () => flipPages(5, 'backward', 50),
+      label: '←← Flip 5 Pages Backward'
+    },
+  });
+  
+  // Emotions (from README concept)
+  const emotions = useControls('🎭 Emotions (README Concept)', {
+    'Focus': {
+      value: () => triggerEmotion('focus'),
+      label: '⭐ Focus (rises, glows)'
+    },
+    'Drift': {
+      value: () => triggerEmotion('drift'),
+      label: '💤 Drift (fades, tilts)'
+    },
+    'Paradox': {
+      value: () => triggerEmotion('paradox'),
+      label: '⚡ Paradox (shake, glitch)'
+    },
+  });
+  
+  // Material Morphing (from README concept)
+  const materials = useControls('🎨 Material Morph (README Concept)', {
+    'Leather': {
+      value: () => morphMaterial('leather'),
+      label: '📚 Leather (humanities)'
+    },
+    'Metal': {
+      value: () => morphMaterial('metal'),
+      label: '🔬 Metal (scientific)'
+    },
+    'Glass': {
+      value: () => morphMaterial('glass'),
+      label: '💎 Glass (truth)'
     },
   });
   
