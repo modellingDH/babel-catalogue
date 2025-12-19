@@ -34,7 +34,7 @@ export function useCoverTexture(
     // Handle multi-line text
     const lines = text.split('\n');
     const fontSize = Math.min(48, Math.floor(400 / lines.length));
-    ctx.font = `bold ${fontSize}px serif`;
+    ctx.font = `bold ${fontSize}px Roboto, sans-serif`;
     
     // Draw text lines
     const startY = 256 - ((lines.length - 1) * (fontSize + 10)) / 2;
