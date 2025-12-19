@@ -43,6 +43,10 @@ export interface BookConfig {
   // Debug
   debug: boolean;
   testPageFlipAngle: number; // Debug: 0 = back cover, 180 = front cover
+  
+  // Page flip animation
+  flippingPageIndex: number | null; // Which page is currently flipping
+  flipProgress: number; // 0 to 1, animation progress
 }
 
 export interface PageProps {

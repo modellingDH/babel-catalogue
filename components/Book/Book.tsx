@@ -37,6 +37,8 @@ export function Book() {
     particleIntensity,
     debug,
     testPageFlipAngle,
+    flippingPageIndex,
+    flipProgress,
   } = useBookStore();
   
   // Spine parameters - FIXED for proper book physics
@@ -119,19 +121,24 @@ export function Book() {
       >
         {/* Pages positioned at inside face of cover (toward the front) */}
         <group position={[0, 0, coverThickness / 2]}>
-          {Array.from({ length: currentPage }, (_, i) => (
-            <Page
-              key={`back-${i}`}
-              index={i}
-              totalPages={pageCount}
-              currentPage={currentPage}
-              opacity={pageOpacity}
-              color={pageColor}
-              glow={glowIntensity}
-              coverWidth={dimensions.width}
-              coverHeight={dimensions.height}
-            />
-          ))}
+          {Array.from({ length: currentPage }, (_, i) => {
+            // Skip the page that's currently flipping
+            if (i === flippingPageIndex) return null;
+            
+            return (
+              <Page
+                key={`back-${i}`}
+                index={i}
+                totalPages={pageCount}
+                currentPage={currentPage}
+                opacity={pageOpacity}
+                color={pageColor}
+                glow={glowIntensity}
+                coverWidth={dimensions.width}
+                coverHeight={dimensions.height}
+              />
+            );
+          })}
         </group>
       </group>
       
@@ -143,21 +150,54 @@ export function Book() {
       >
         {/* Pages positioned at inside face of cover (toward the back) */}
         <group position={[0, 0, -coverThickness / 2]}>
-          {Array.from({ length: pageCount - currentPage }, (_, i) => (
-            <Page
-              key={`front-${i + currentPage}`}
-              index={i + currentPage}
-              totalPages={pageCount}
-              currentPage={currentPage}
-              opacity={pageOpacity}
-              color={pageColor}
-              glow={glowIntensity}
-              coverWidth={dimensions.width}
-              coverHeight={dimensions.height}
-            />
-          ))}
+          {Array.from({ length: pageCount - currentPage }, (_, i) => {
+            const pageIndex = i + currentPage;
+            // Skip the page that's currently flipping
+            if (pageIndex === flippingPageIndex) return null;
+            
+            return (
+              <Page
+                key={`front-${pageIndex}`}
+                index={pageIndex}
+                totalPages={pageCount}
+                currentPage={currentPage}
+                opacity={pageOpacity}
+                color={pageColor}
+                glow={glowIntensity}
+                coverWidth={dimensions.width}
+                coverHeight={dimensions.height}
+              />
+            );
+          })}
         </group>
       </group>
+      
+      {/* Flipping page - rendered separately with animation */}
+      {flippingPageIndex !== null && (() => {
+        // Calculate page rotation between cover angles
+        // flipProgress goes from 0 (back) to 1 (front)
+        const pageRotation = backHinge + flipProgress * (-frontHinge - backHinge);
+        
+        return (
+          <group 
+            position={[spineWidth / 2, 0, 0]} 
+            rotation={[0, pageRotation, 0]}
+          >
+            <mesh position={[dimensions.width * 0.93 / 2, 0, 0]}>
+              <planeGeometry args={[dimensions.width * 0.93, dimensions.height * 0.95]} />
+              <meshStandardMaterial
+                color={pageColor}
+                transparent
+                opacity={pageOpacity}
+                side={THREE.DoubleSide}
+                emissive={pageColor}
+                emissiveIntensity={glowIntensity}
+                depthWrite={false}
+              />
+            </mesh>
+          </group>
+        );
+      })()}
       
       {/* Particles */}
       <Particles

@@ -115,6 +115,10 @@ const initialState: BookConfig = {
   // Debug
   debug: false,
   testPageFlipAngle: 0, // 0 = back cover, 180 = front cover
+  
+  // Page flip animation
+  flippingPageIndex: null,
+  flipProgress: 0,
 };
 
 export const useBookStore = create<BookState>((set, get) => ({
@@ -148,18 +152,81 @@ export const useBookStore = create<BookState>((set, get) => ({
   
   flipPage: (direction) => {
     const state = get();
-    const { currentPage, pageCount } = state;
+    const { currentPage, pageCount, flippingPageIndex } = state;
+    
+    // Don't start new flip if one is in progress
+    if (flippingPageIndex !== null) {
+      console.log('⚠️ Flip already in progress');
+      return;
+    }
     
     if (direction === 'forward') {
       // Flip forward (increase current page)
       const newPage = Math.min(currentPage + 1, pageCount - 1);
-      set({ currentPage: newPage });
-      console.log('Flip forward:', currentPage, '→', newPage);
+      if (newPage === currentPage) {
+        console.log('⚠️ Already at last page');
+        return;
+      }
+      
+      console.log('📄 Start flip forward:', currentPage, '→', newPage);
+      
+      // Start animation
+      set({ flippingPageIndex: currentPage, flipProgress: 0 });
+      
+      // Animate flip progress
+      const duration = 400; // ms
+      const startTime = performance.now();
+      
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        set({ flipProgress: progress });
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          // Animation complete - update currentPage and reset
+          set({ currentPage: newPage, flippingPageIndex: null, flipProgress: 0 });
+          console.log('✅ Flip complete:', newPage);
+        }
+      };
+      
+      requestAnimationFrame(animate);
+      
     } else {
       // Flip backward (decrease current page)
       const newPage = Math.max(currentPage - 1, 0);
-      set({ currentPage: newPage });
-      console.log('Flip backward:', currentPage, '→', newPage);
+      if (newPage === currentPage) {
+        console.log('⚠️ Already at first page');
+        return;
+      }
+      
+      console.log('📄 Start flip backward:', currentPage, '→', newPage);
+      
+      // For backward, we flip the page at currentPage-1 from front to back
+      set({ flippingPageIndex: newPage, flipProgress: 0 });
+      
+      // Animate flip progress (but in reverse direction)
+      const duration = 400; // ms
+      const startTime = performance.now();
+      
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        set({ flipProgress: progress });
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          // Animation complete - update currentPage and reset
+          set({ currentPage: newPage, flippingPageIndex: null, flipProgress: 0 });
+          console.log('✅ Flip complete:', newPage);
+        }
+      };
+      
+      requestAnimationFrame(animate);
     }
   },
   
