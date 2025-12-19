@@ -188,24 +188,21 @@ export function Book() {
           pageRotation = -frontHinge + flipProgress * (backHinge - (-frontHinge));
         }
         
-        const rotationDegrees = (pageRotation * 180 / Math.PI).toFixed(1);
-        console.log(`🟡 Flipping page ${flippingPageIndex} at ${rotationDegrees}° (${isFlippingForward ? 'FORWARD' : 'BACKWARD'})`);
-        
         return (
           <group 
             position={[spineWidth / 2, 0, 0]} 
             rotation={[0, pageRotation, 0]}
           >
-            {/* Make it bright and obvious for debugging */}
-            <mesh position={[dimensions.width / 2, 0, 0]}>
-              <planeGeometry args={[dimensions.width, dimensions.height]} />
+            {/* Flipping page with normal appearance */}
+            <mesh position={[dimensions.width * 0.93 / 2, 0, 0]}>
+              <planeGeometry args={[dimensions.width * 0.93, dimensions.height * 0.95]} />
               <meshStandardMaterial
-                color="#ffff00"  // BRIGHT YELLOW for debugging
+                color={pageColor}
                 transparent
-                opacity={0.9}
+                opacity={pageOpacity}
                 side={THREE.DoubleSide}
-                emissive="#ffff00"
-                emissiveIntensity={1.0}
+                emissive={pageColor}
+                emissiveIntensity={glowIntensity}
                 depthWrite={false}
               />
             </mesh>
