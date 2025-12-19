@@ -353,9 +353,18 @@ export const useBookStore = create<BookState>((set, get) => ({
   },
   
   /**
-   * Flip multiple pages with animation
+   * Flip multiple pages with animation (visual flip for each)
    */
   flipPages: (count, direction, duration = 200) => {
+    const state = get();
+    const { flippingPageIndex } = state;
+    
+    // Don't start if already flipping
+    if (flippingPageIndex !== null) {
+      console.log('⚠️ Flip already in progress');
+      return;
+    }
+    
     let flipped = 0;
     
     const flipNext = () => {
@@ -364,7 +373,7 @@ export const useBookStore = create<BookState>((set, get) => ({
         return;
       }
       
-      // Get fresh state each time
+      // Get fresh state
       const state = get();
       const { currentPage, pageCount } = state;
       
@@ -376,25 +385,47 @@ export const useBookStore = create<BookState>((set, get) => ({
         newPage = Math.max(currentPage - 1, 0);
       }
       
-      console.log(`📄 Flip ${flipped + 1}/${count}: page ${currentPage} → ${newPage} (total: ${pageCount})`);
-      
-      // Only update if page actually changed
-      if (newPage !== currentPage) {
-        set({ currentPage: newPage });
-        flipped++;
-        
-        // Wait longer for animation to be visible
-        if (flipped < count) {
-          setTimeout(flipNext, duration);
-        }
-      } else {
-        // Can't flip further (at boundary)
+      if (newPage === currentPage) {
         console.log('⚠️ Reached boundary at page', currentPage);
+        return;
       }
+      
+      console.log(`📄 Flip ${flipped + 1}/${count}: page ${currentPage} → ${newPage}`);
+      
+      // Start visual flip animation for this page
+      const pageToFlip = direction === 'forward' ? currentPage : currentPage;
+      set({ flippingPageIndex: pageToFlip, flipProgress: 0 });
+      
+      // Animate this page flip
+      const flipDuration = 800; // Each page flips in 800ms
+      const startTime = performance.now();
+      
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / flipDuration, 1);
+        
+        set({ flipProgress: progress });
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          // This page flip complete
+          set({ currentPage: newPage, flippingPageIndex: null, flipProgress: 0 });
+          flipped++;
+          
+          // Start next flip after a brief pause
+          if (flipped < count) {
+            setTimeout(flipNext, 100); // 100ms pause between flips
+          } else {
+            console.log('✅ All', count, 'pages flipped');
+          }
+        }
+      };
+      
+      requestAnimationFrame(animate);
     };
     
-    // Start the flip sequence
-    console.log('▶️ Starting page flip:', count, 'pages', direction, 'from page', get().currentPage);
+    console.log('▶️ Starting', count, 'page flips', direction, 'from page', get().currentPage);
     flipNext();
   },
   
