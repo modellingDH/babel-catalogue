@@ -174,21 +174,10 @@ export function Book() {
       
       {/* Flipping page - rendered separately with animation */}
       {flippingPageIndex !== null && flipProgress > 0 && (() => {
-        // Determine flip direction based on which stack the page comes from
-        // For forward flip: page comes from back stack (index < currentPage during animation)
-        // For backward flip: page comes from front stack (index >= currentPage during animation)
-        const isFlippingForward = flippingPageIndex < currentPage;
-        
-        let pageRotation;
-        if (isFlippingForward) {
-          // Forward: Rotate from back cover to front cover
-          // backHinge → -frontHinge
-          pageRotation = backHinge + flipProgress * (-frontHinge - backHinge);
-        } else {
-          // Backward: Rotate from front cover to back cover
-          // -frontHinge → backHinge (reversed)
-          pageRotation = -frontHinge + flipProgress * (backHinge - (-frontHinge));
-        }
+        // Both forward and backward animate from back to front (0 to 180)
+        // The difference is which page is selected, not the animation direction
+        // Always rotate from backHinge to -frontHinge
+        const pageRotation = backHinge + flipProgress * (-frontHinge - backHinge);
         
         return (
           <group 

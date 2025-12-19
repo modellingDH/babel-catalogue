@@ -190,9 +190,9 @@ export const useBookStore = create<BookState>((set, get) => ({
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
-          // Animation complete - NOW update currentPage and reset
-          set({ currentPage: newPage, flippingPageIndex: null, flipProgress: 0 });
-          console.log('✅ Flip complete:', newPage);
+          // Animation complete - reset without updating currentPage
+          set({ flippingPageIndex: null, flipProgress: 0 });
+          console.log('✅ Flip animation complete (currentPage unchanged)');
           
           // If continuous flip is on, start next flip
           if (get().isFlippingContinuously && get().continuousDirection === 'forward') {
@@ -236,9 +236,9 @@ export const useBookStore = create<BookState>((set, get) => ({
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
-          // Animation complete - NOW update currentPage and reset
-          set({ currentPage: newPage, flippingPageIndex: null, flipProgress: 0 });
-          console.log('✅ Flip BACKWARD complete:', newPage);
+          // Animation complete - reset without updating currentPage
+          set({ flippingPageIndex: null, flipProgress: 0 });
+          console.log('✅ Flip animation complete (currentPage unchanged)');
           
           // If continuous flip is on, start next flip
           if (get().isFlippingContinuously && get().continuousDirection === 'backward') {
@@ -448,15 +448,15 @@ export const useBookStore = create<BookState>((set, get) => ({
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
-          // This page flip complete
-          set({ currentPage: newPage, flippingPageIndex: null, flipProgress: 0 });
+          // This page flip complete - reset without updating currentPage
+          set({ flippingPageIndex: null, flipProgress: 0 });
           flipped++;
           
           // Start next flip after a brief pause
           if (flipped < count) {
             setTimeout(flipNext, 50); // 50ms pause between flips
           } else {
-            console.log('✅ All', count, 'pages flipped');
+            console.log('✅ All', count, 'page animations complete (currentPage unchanged)');
           }
         }
       };
