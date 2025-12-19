@@ -177,7 +177,7 @@ export const useBookStore = create<BookState>((set, get) => ({
       set({ flippingPageIndex: currentPage, flipProgress: 0 });
       
       // Animate flip progress
-      const duration = 400; // ms
+      const duration = 500; // ms
       const startTime = performance.now();
       
       const animate = (currentTime: number) => {
@@ -223,7 +223,7 @@ export const useBookStore = create<BookState>((set, get) => ({
       set({ flippingPageIndex: currentPage, flipProgress: 0 });
       
       // Animate flip progress (in reverse - front to back)
-      const duration = 400; // ms
+      const duration = 500; // ms
       const startTime = performance.now();
       
       const animate = (currentTime: number) => {
@@ -436,7 +436,7 @@ export const useBookStore = create<BookState>((set, get) => ({
       set({ flippingPageIndex: pageToFlip, flipProgress: 0 });
       
       // Animate this page flip
-      const flipDuration = 300; // Each page flips in 300ms
+      const flipDuration = 500; // Each page flips in 500ms
       const startTime = performance.now();
       
       const animate = (currentTime: number) => {

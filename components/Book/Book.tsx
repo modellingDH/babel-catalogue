@@ -50,7 +50,7 @@ export function Book() {
   useFrame(() => {
     if (bookGroupRef.current) {
       bookGroupRef.current.rotation.y = spineRotation;
-      bookGroupRef.current.rotation.x = tilt;
+      bookGroupRef.current.rotation.z = tilt; // Tilt controls horizontality (lean left/right)
       bookGroupRef.current.scale.setScalar(scale);
     }
   });
@@ -175,16 +175,18 @@ export function Book() {
       {/* Flipping page - rendered separately with animation */}
       {flippingPageIndex !== null && flipProgress > 0 && (() => {
         // Determine flip direction based on which stack the page comes from
+        // For forward flip: page comes from back stack (index < currentPage during animation)
+        // For backward flip: page comes from front stack (index >= currentPage during animation)
         const isFlippingForward = flippingPageIndex < currentPage;
         
         let pageRotation;
         if (isFlippingForward) {
-          // Forward: 0 (back) to 1 (front)
-          // Rotate from backHinge to -frontHinge
+          // Forward: Rotate from back cover to front cover
+          // backHinge → -frontHinge
           pageRotation = backHinge + flipProgress * (-frontHinge - backHinge);
         } else {
-          // Backward: 1 (front) to 0 (back)
-          // Rotate from -frontHinge back to backHinge
+          // Backward: Rotate from front cover to back cover
+          // -frontHinge → backHinge (reversed)
           pageRotation = -frontHinge + flipProgress * (backHinge - (-frontHinge));
         }
         
