@@ -40,7 +40,7 @@ export function Cover({
       position={[pivotX, 0, pivotZ]} 
       rotation={[0, hingeRotation, 0]}
     >
-      {/* Cover extends from pivot (spine edge) outward */}
+      {/* Cover box - plain color, no texture */}
       <mesh 
         position={[width / 2, 0, 0]} 
         castShadow 
@@ -49,12 +49,30 @@ export function Cover({
         <boxGeometry args={[width, height, coverThickness]} />
         <meshStandardMaterial
           color={color}
-          map={texture}
-          transparent={true}
+          transparent={opacity < 1}
           opacity={opacity}
           side={THREE.DoubleSide}
         />
       </mesh>
+      
+      {/* Text plane hovering in front of external side */}
+      {texture && (
+        <mesh 
+          position={[width, 0, 0]} // At the far end (external side)
+          rotation={[0, 0, 0]} // Facing outward
+        >
+          <planeGeometry args={[width * 0.9, height * 0.9]} /> {/* Slightly smaller */}
+          <meshStandardMaterial
+            color="#ffffff" // White base to show texture colors correctly
+            map={texture}
+            transparent={true}
+            opacity={opacity}
+            side={THREE.DoubleSide}
+            depthWrite={false}
+          />
+        </mesh>
+      )}
     </group>
   );
 }
+
