@@ -20,9 +20,8 @@ export function useCoverTexture(
     
     if (!ctx) return null;
     
-    // Clear canvas
-    ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(0, 0, 512, 512);
+    // Clear canvas with transparency
+    ctx.clearRect(0, 0, 512, 512);
     
     // Setup text style
     ctx.fillStyle = textColor;

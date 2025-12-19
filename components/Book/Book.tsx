@@ -175,11 +175,11 @@ export function Book() {
       
       {/* Flipping page - rendered separately with animation */}
       {flippingPageIndex !== null && flipProgress > 0 && (() => {
-        // Forward: Flip from BACK to FRONT (0 to 180)
-        // Backward: Flip from FRONT to BACK (180 to 0)
+        // Forward: Flip from FRONT to BACK (180 to 0)
+        // Backward: Flip from BACK to FRONT (0 to 180)
         const pageRotation = flipDirection === 'forward'
-          ? backHinge + flipProgress * (-frontHinge - backHinge)  // 0° → 180°
-          : -frontHinge + flipProgress * (backHinge - (-frontHinge));  // 180° → 0°
+          ? -frontHinge + flipProgress * (backHinge - (-frontHinge))  // 180° → 0°
+          : backHinge + flipProgress * (-frontHinge - backHinge);  // 0° → 180°
         
         return (
           <group 

@@ -48,9 +48,10 @@ export function Cover({
         <meshStandardMaterial
           color={color}
           map={texture}
-          transparent={opacity < 1}
+          transparent={opacity < 1 || texture !== null}
           opacity={opacity}
           side={THREE.DoubleSide}
+          alphaTest={0.1}
         />
       </mesh>
     </group>
