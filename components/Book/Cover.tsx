@@ -35,40 +35,43 @@ export function Cover({
   // Rotation direction: front cover uses negative (opens forward), back uses positive
   const hingeRotation = side === 'front' ? -hinge : hinge;
   
-  // Create materials array: texture on outside (+X face), plain color on all others
+  // Create materials array for box geometry faces
+  // Order: [right(+X), left(-X), top(+Y), bottom(-Y), front(+Z), back(-Z)]
   const materials = [
-    // Right face (+X) - OUTSIDE - with texture
+    // Right face (+X) - OUTSIDE - with texture and text overlaid on cover color
     new THREE.MeshStandardMaterial({
-      color: color,
+      color: color, // Cover color as base
       map: texture,
-      transparent: opacity < 1 || texture !== null,
+      transparent: true,
       opacity: opacity,
-      alphaTest: 0.1,
     }),
-    // Left face (-X) - INSIDE - plain color
+    // Left face (-X) - INSIDE - plain cover color
     new THREE.MeshStandardMaterial({
       color: color,
       transparent: opacity < 1,
       opacity: opacity,
     }),
-    // Top, Bottom, Front, Back - plain color
+    // Top edge (+Y) - outline color
     new THREE.MeshStandardMaterial({
-      color: color,
+      color: outlineColor,
       transparent: opacity < 1,
       opacity: opacity,
     }),
+    // Bottom edge (-Y) - outline color
     new THREE.MeshStandardMaterial({
-      color: color,
+      color: outlineColor,
       transparent: opacity < 1,
       opacity: opacity,
     }),
+    // Front edge (+Z) - outline color
     new THREE.MeshStandardMaterial({
-      color: color,
+      color: outlineColor,
       transparent: opacity < 1,
       opacity: opacity,
     }),
+    // Back edge (-Z) - outline color
     new THREE.MeshStandardMaterial({
-      color: color,
+      color: outlineColor,
       transparent: opacity < 1,
       opacity: opacity,
     }),

@@ -22,7 +22,7 @@ export function useCoverTexture(
     
     if (!ctx) return null;
     
-    // Clear canvas with transparency
+    // Clear canvas with transparency so cover color shows through
     ctx.clearRect(0, 0, 512, 512);
     
     // Setup text style
