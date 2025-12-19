@@ -120,6 +120,7 @@ const initialState: BookConfig = {
   // Page flip animation
   flippingPageIndex: null,
   flipProgress: 0,
+  flipDirection: null,
   isFlippingContinuously: false,
   continuousDirection: null,
 };
@@ -174,7 +175,7 @@ export const useBookStore = create<BookState>((set, get) => ({
       console.log('📄 Start flip forward:', currentPage, '→', newPage);
       
       // Start animation - DON'T update currentPage yet
-      set({ flippingPageIndex: currentPage, flipProgress: 0 });
+      set({ flippingPageIndex: currentPage, flipProgress: 0, flipDirection: 'forward' });
       
       // Animate flip progress
       const duration = 500; // ms
@@ -191,7 +192,7 @@ export const useBookStore = create<BookState>((set, get) => ({
           requestAnimationFrame(animate);
         } else {
           // Animation complete - reset without updating currentPage
-          set({ flippingPageIndex: null, flipProgress: 0 });
+          set({ flippingPageIndex: null, flipProgress: 0, flipDirection: null });
           console.log('✅ Flip animation complete (currentPage unchanged)');
           
           // If continuous flip is on, start next flip
@@ -220,7 +221,7 @@ export const useBookStore = create<BookState>((set, get) => ({
       
       // For backward, flip the first page from the FRONT stack
       // This is the page at index currentPage
-      set({ flippingPageIndex: currentPage, flipProgress: 0 });
+      set({ flippingPageIndex: currentPage, flipProgress: 0, flipDirection: 'backward' });
       
       // Animate flip progress (in reverse - front to back)
       const duration = 500; // ms
@@ -237,7 +238,7 @@ export const useBookStore = create<BookState>((set, get) => ({
           requestAnimationFrame(animate);
         } else {
           // Animation complete - reset without updating currentPage
-          set({ flippingPageIndex: null, flipProgress: 0 });
+          set({ flippingPageIndex: null, flipProgress: 0, flipDirection: null });
           console.log('✅ Flip animation complete (currentPage unchanged)');
           
           // If continuous flip is on, start next flip
@@ -449,7 +450,7 @@ export const useBookStore = create<BookState>((set, get) => ({
           requestAnimationFrame(animate);
         } else {
           // This page flip complete - reset without updating currentPage
-          set({ flippingPageIndex: null, flipProgress: 0 });
+          set({ flippingPageIndex: null, flipProgress: 0, flipDirection: null });
           flipped++;
           
           // Start next flip after a brief pause
