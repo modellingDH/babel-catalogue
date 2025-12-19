@@ -65,7 +65,11 @@ export function Cover({
               ? coverThickness / 2 + 0.01   // Front: offset in +Z (away from pages)
               : -(coverThickness / 2 + 0.01) // Back: offset in -Z (away from pages)
           ]}
-          rotation={[0, 0, 0]}
+          rotation={[
+            0, 
+            side === 'back' ? Math.PI : 0, // Back cover: flip 180° around Y axis
+            0
+          ]}
         >
           <planeGeometry args={[width * 0.9, height * 0.9]} />
           <meshStandardMaterial
