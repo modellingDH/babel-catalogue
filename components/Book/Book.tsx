@@ -3,7 +3,7 @@
  * Composes all book parts with proper physics
  */
 import { useRef } from 'react';
-import { Group } from 'three';
+import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useBookStore } from '../../stores/bookStore';
 import { Page } from './Page';
