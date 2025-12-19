@@ -1,0 +1,35 @@
+{
+  "name": "babel-catalogue",
+  "version": "1.0.0",
+  "description": "This interface is designed for Third-Person Observation. The book is not a UI for the user, but a performance tool for an AI. When an AI \"thinks,\" the book reacts. This physicalizes the abstract nature of data retrieval.",
+  "main": "babelCatalogue.js",
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/modellingDH/babel-catalogue.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/modellingDH/babel-catalogue/issues"
+  },
+  "homepage": "https://github.com/modellingDH/babel-catalogue#readme",
+  "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.4.2",
+    "@tweenjs/tween.js": "^25.0.0",
+    "leva": "^0.10.1",
+    "next": "^16.1.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "three": "^0.182.0",
+    "three-stdlib": "^2.36.1",
+    "zustand": "^5.0.9"
+  }
+}
