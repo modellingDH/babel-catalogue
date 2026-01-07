@@ -1,0 +1,35 @@
+# Development files
+pages/
+.next/
+node_modules/
+*.log
+
+# Build artifacts (we'll include dist)
+.turbo/
+
+# Development config
+next.config.js
+next-env.d.ts
+jsconfig.json
+tsconfig.json
+tsconfig.lib.json
+
+# Documentation (keep in git, exclude from npm)
+ANIMATED_ACTIONS.md
+BOOK_PHYSICS_GUIDE.md
+INFINITE_PAGES_FEATURE.md
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+

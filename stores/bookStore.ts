@@ -50,6 +50,7 @@ interface BookState extends BookConfig {
   setSpineRotation: (rotation: number) => void;
   setTilt: (tilt: number) => void;
   setScale: (scale: number) => void;
+  setPosition: (position: [number, number, number]) => void;
   setFrontHinge: (hinge: number) => void;
   setBackHinge: (hinge: number) => void;
   setBothHinges: (hinge: number) => void;
@@ -90,6 +91,7 @@ const initialState: BookConfig = {
   spineRotation: 0.5,
   tilt: 0.2,
   scale: 1,
+  position: [0, 0, 0] as [number, number, number],
   
   // Cover hinges
   frontHinge: 0,
@@ -297,6 +299,7 @@ export const useBookStore = create<BookState>((set, get) => ({
   setSpineRotation: (rotation) => set({ spineRotation: rotation }),
   setTilt: (tilt) => set({ tilt: tilt }),
   setScale: (scale) => set({ scale: scale }),
+  setPosition: (position) => set({ position: position }),
   setFrontHinge: (hinge) => set({ frontHinge: hinge }),
   setBackHinge: (hinge) => set({ backHinge: hinge }),
   setBothHinges: (hinge) => set({ frontHinge: hinge, backHinge: hinge }),

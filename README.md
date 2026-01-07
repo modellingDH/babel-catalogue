@@ -8,6 +8,45 @@ This interface is designed for **Third-Person Observation**. The book is not a U
 
 ---
 
+## 📦 Use as a Module
+
+Babel Catalogue is available as a reusable React Three Fiber module that you can integrate into your own projects.
+
+### Installation
+
+```bash
+# From GitHub Release
+npm install https://github.com/modellingDH/babel-catalogue/releases/download/v1.0.0/babel-catalogue-1.0.0.tgz
+```
+
+### Quick Start
+
+```tsx
+import { Canvas } from '@react-three/fiber';
+import { Book, Scene, useBookStore } from 'babel-catalogue';
+
+function App() {
+  const { openBook, flipPage, triggerEmotion } = useBookStore();
+  
+  return (
+    <div style={{ width: '100vw', height: '100vh' }}>
+      <Canvas camera={{ position: [6, 4, 10], fov: 45 }}>
+        <Scene>
+          <Book />
+        </Scene>
+      </Canvas>
+    </div>
+  );
+}
+```
+
+**Documentation:**
+- [API Documentation](./API.md) - Complete API reference
+- [Module Usage Guide](./MODULE_USAGE.md) - Integration examples
+- [Release Guide](./RELEASE_GUIDE.md) - For maintainers
+
+---
+
 ## 🚀 Quick Start
 
 ### Development

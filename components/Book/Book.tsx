@@ -24,6 +24,7 @@ export function Book() {
     spineRotation,
     tilt,
     scale,
+    position,
     frontHinge,
     backHinge,
     pageOpacity,
@@ -57,6 +58,8 @@ export function Book() {
       bookGroupRef.current.rotation.y = spineRotation;
       bookGroupRef.current.rotation.z = tilt; // Tilt controls horizontality (lean left/right)
       bookGroupRef.current.scale.setScalar(scale);
+      const safePosition = position || [0, 0, 0];
+      bookGroupRef.current.position.set(safePosition[0], safePosition[1], safePosition[2]);
     }
   });
   

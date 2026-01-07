@@ -18,6 +18,7 @@ export interface BookConfig {
   spineRotation: number;
   tilt: number;
   scale: number;
+  position: [number, number, number]; // Book position in 3D space [x, y, z]
   
   // Cover hinges
   frontHinge: number;

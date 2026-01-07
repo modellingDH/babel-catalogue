@@ -332,11 +332,24 @@ export default function R3FDevInterface() {
             pageCount: bookState.pageCount,
             currentPage: bookState.currentPage,
             dimensions: bookState.dimensions,
+            // Rotation angles (in radians)
             spineRotation: bookState.spineRotation,
             tilt: bookState.tilt,
+            // Rotation angles (in degrees) for easier reading
+            rotation: {
+              y: (bookState.spineRotation * 180) / Math.PI,
+              z: (bookState.tilt * 180) / Math.PI
+            },
+            // Position and scale
+            position: [0, 0, 0], // Book position in 3D space
             scale: bookState.scale,
+            // Camera position
+            cameraPosition: [6, 4, 10],
+            cameraFov: 45,
+            // Cover hinges
             frontHinge: bookState.frontHinge,
             backHinge: bookState.backHinge,
+            // Appearance
             pageOpacity: bookState.pageOpacity,
             pageColor: bookState.pageColor,
             glowIntensity: bookState.glowIntensity,
