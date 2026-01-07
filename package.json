@@ -1,6 +1,6 @@
 {
   "name": "babel-catalogue",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A 3D animated book component built with React Three Fiber for visualizing AI cognitive states and data retrieval processes",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
