@@ -13,17 +13,17 @@ export interface BookConfig {
   pageCount: number;
   currentPage: number; // Which page the book is open to (for infinite pages)
   dimensions: BookDimensions;
-  
+
   // Transformations
   spineRotation: number;
   tilt: number;
   scale: number;
   position: [number, number, number]; // Book position in 3D space [x, y, z]
-  
+
   // Cover hinges
   frontHinge: number;
   backHinge: number;
-  
+
   // Appearance
   pageOpacity: number;
   pageColor: string;
@@ -31,23 +31,24 @@ export interface BookConfig {
   coverColor: string;
   coverOpacity: number;
   spineColor: string;
-  
+
   // Cover text
   frontCoverText: string;
   backCoverText: string;
   coverTextColor: string;
   coverOutlineColor: string;
   coverOutlineWidth: number;
-  
+  fontFamily: string;
+
   // Features
   particlesEnabled: boolean;
   particleIntensity: number;
   confidenceScore: number;
-  
+
   // Debug
   debug: boolean;
   testPageFlipAngle: number; // Debug: 0 = back cover, 180 = front cover
-  
+
   // Page flip animation
   flippingPageIndex: number | null; // Which page is currently flipping
   flipProgress: number; // 0 to 1, animation progress

@@ -19,7 +19,7 @@
 
 import { useEffect, Suspense, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Book, useBookStore } from 'babel-catalogue';
+import { Book, useBookStore, BookProvider } from 'babel-catalogue';
 import { SimpleScene } from './SimpleScene';
 
 /**
@@ -51,7 +51,7 @@ function BookConfigurator() {
     setParticlesEnabled,
     setParticleIntensity,
     openBook,
-  } = useBookStore();
+  } = useBookStore(state => state);
 
   useEffect(() => {
     // Apply all configuration values
@@ -117,7 +117,7 @@ function BookConfigurator() {
  * Provides editable input fields for the book's position in 3D space.
  */
 function PositionControls() {
-  const { position, setPosition } = useBookStore();
+  const { position, setPosition } = useBookStore(state => state);
   // Default to [0, 0, 0] if position is undefined
   const safePosition: [number, number, number] = position || [0, 0, 0];
   const [localPosition, setLocalPosition] = useState<[number, number, number]>(safePosition);
@@ -224,7 +224,9 @@ function PositionControls() {
  * It sets up the React Three Fiber Canvas with appropriate camera settings
  * and includes the Book component within a Scene.
  */
-function App() {
+// Main App Component already wrapped below
+
+function AppContent() {
   return (
     <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0, overflow: 'hidden' }}>
       <Canvas
@@ -242,6 +244,14 @@ function App() {
       <BookConfigurator />
       <PositionControls />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <BookProvider>
+      <AppContent />
+    </BookProvider>
   );
 }
 

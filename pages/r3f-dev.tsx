@@ -10,11 +10,11 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { Scene } from '../components/Book/Scene';
 import { Book } from '../components/Book/Book';
-import { useBookStore } from '../stores/bookStore';
+import { BookProvider, useBookStore } from '../components/Book/BookContext';
 
-export default function R3FDevInterface() {
+function DevContent() {
   // Get store state and actions
-  const bookState = useBookStore();
+  const bookState = useBookStore(state => state);
   const {
     setPageCount,
     setCurrentPage,
@@ -49,8 +49,8 @@ export default function R3FDevInterface() {
     closeBook,
     triggerEmotion,
     morphMaterial,
-  } = useBookStore();
-  
+  } = useBookStore(state => state);
+
   // Leva controls - automatic GUI
   const controls = useControls('Book Controls', {
     // Core - Pages
@@ -62,7 +62,7 @@ export default function R3FDevInterface() {
       label: 'Page Density (more = denser)',
       onChange: (v) => setPageCount(v)
     },
-    
+
     currentPage: {
       value: 15,
       min: 0,
@@ -71,14 +71,14 @@ export default function R3FDevInterface() {
       label: 'Current Page (book opens here)',
       onChange: (v) => setCurrentPage(v)
     },
-    
+
     // Dimensions (spine depth auto-calculated from pageCount)
     dimensions: {
       value: { height: 4, width: 3 },
       label: 'Cover Size (height, width)',
       onChange: (v) => setDimensions(v)
     },
-    
+
     // Transformations
     spineRotation: {
       value: 0.5,
@@ -101,7 +101,7 @@ export default function R3FDevInterface() {
       step: 0.01,
       onChange: (v) => setScale(v)
     },
-    
+
     // Hinges - Symmetric Control
     'Open/Close Book': {
       value: 0,
@@ -111,7 +111,7 @@ export default function R3FDevInterface() {
       label: '📖 Both Covers (Symmetric)',
       onChange: (v) => setBothHinges(v)
     },
-    
+
     // Individual Hinge Controls
     frontHinge: {
       value: 0,
@@ -130,7 +130,7 @@ export default function R3FDevInterface() {
       onChange: (v) => setBackHinge(v)
     },
   });
-  
+
   const appearance = useControls('Appearance', {
     // Pages
     pageOpacity: {
@@ -151,7 +151,7 @@ export default function R3FDevInterface() {
       step: 0.1,
       onChange: (v) => setGlowIntensity(v)
     },
-    
+
     // Covers
     coverColor: {
       value: '#2b1e16',
@@ -165,7 +165,7 @@ export default function R3FDevInterface() {
       onChange: (v) => setCoverOpacity(v)
     },
   });
-  
+
   const text = useControls('Cover Text', {
     coverTextColor: {
       value: '#c9a876',
@@ -185,7 +185,7 @@ export default function R3FDevInterface() {
       label: 'Outline Width',
       onChange: (v) => setCoverOutlineWidth(v)
     },
-    
+
     frontCoverText: {
       value: '',
       label: 'Front Cover Text',
@@ -197,7 +197,7 @@ export default function R3FDevInterface() {
       onChange: (v) => setBackCoverText(v)
     },
   });
-  
+
   const features = useControls('Features', {
     particlesEnabled: {
       value: true,
@@ -215,7 +215,7 @@ export default function R3FDevInterface() {
       onChange: (v) => setDebug(v)
     },
   });
-  
+
   // Debug: Manual Page Flip Test
   useControls('🔧 Debug: Manual Page Flip', {
     'Test Page Flip Angle': {
@@ -227,53 +227,47 @@ export default function R3FDevInterface() {
       onChange: (v) => setTestPageFlipAngle(v)
     },
   });
-  
+
   // Animated Actions
   useControls('📖 Animated Actions', {
-    'Open Book': button(() => openBook(1000), { label: '📖 Open (1s)' }),
-    'Close Book': button(() => closeBook(1000), { label: '📕 Close (1s)' }),
-    
+    'Open Book': button(() => openBook(1000)),
+    'Close Book': button(() => closeBook(1000)),
+
     // Page flipping
-    'Flip Forward': button(() => flipPage('forward'), { label: '→ Next Page' }),
-    'Flip Backward': button(() => flipPage('backward'), { label: '← Previous Page' }),
-    'Flip 5 Forward': button(() => flipPages(5, 'forward'), { label: '→→ Flip 5 Pages' }),
-    'Flip 5 Backward': button(() => flipPages(5, 'backward'), { label: '←← Flip 5 Pages' }),
-    
+    'Flip Forward': button(() => flipPage('forward')),
+    'Flip Backward': button(() => flipPage('backward')),
+    'Flip 5 Forward': button(() => flipPages(5, 'forward')),
+    'Flip 5 Backward': button(() => flipPages(5, 'backward')),
+
     // Continuous flipping
     'Continuous Forward': button(
-      () => toggleContinuousFlip('forward'),
-      { 
-        label: isFlippingContinuously && continuousDirection === 'forward' ? '⏸️ Stop Forward' : '▶️ Flip Forward Loop'
-      }
+      () => toggleContinuousFlip('forward')
     ),
     'Continuous Backward': button(
-      () => toggleContinuousFlip('backward'),
-      { 
-        label: isFlippingContinuously && continuousDirection === 'backward' ? '⏸️ Stop Backward' : '◀️ Flip Backward Loop'
-      }
+      () => toggleContinuousFlip('backward')
     ),
   });
-  
+
   // Emotions (from README concept)
   useControls('🎭 Emotions', {
-    'Focus': button(() => triggerEmotion('focus'), { label: '⭐ Focus' }),
-    'Drift': button(() => triggerEmotion('drift'), { label: '💤 Drift' }),
-    'Paradox': button(() => triggerEmotion('paradox'), { label: '⚡ Paradox' }),
+    'Focus': button(() => triggerEmotion('focus')),
+    'Drift': button(() => triggerEmotion('drift')),
+    'Paradox': button(() => triggerEmotion('paradox')),
   });
-  
+
   // Material Morphing (from README concept)
   useControls('🎨 Materials', {
-    'Leather': button(() => morphMaterial('leather'), { label: '📚 Leather' }),
-    'Metal': button(() => morphMaterial('metal'), { label: '🔬 Metal' }),
-    'Glass': button(() => morphMaterial('glass'), { label: '💎 Glass' }),
+    'Leather': button(() => morphMaterial('leather')),
+    'Metal': button(() => morphMaterial('metal')),
+    'Glass': button(() => morphMaterial('glass')),
   });
-  
+
   return (
     <>
       <Head>
         <title>Babel Catalogue - R3F Dev Interface</title>
       </Head>
-      
+
       {/* Leva GUI */}
       <Leva
         collapsed={false}
@@ -295,7 +289,7 @@ export default function R3FDevInterface() {
           }
         }}
       />
-      
+
       {/* Navigation */}
       <div style={{
         position: 'absolute',
@@ -328,7 +322,7 @@ export default function R3FDevInterface() {
           R3F Interface
         </div>
       </div>
-      
+
       {/* Configuration JSON Display */}
       <div style={{
         position: 'fixed',
@@ -385,7 +379,7 @@ export default function R3FDevInterface() {
           }, null, 2)}
         </pre>
       </div>
-      
+
       {/* 3D Canvas */}
       <Canvas
         camera={{ position: [6, 4, 10], fov: 45 }}
@@ -398,11 +392,19 @@ export default function R3FDevInterface() {
             <Book />
           </Scene>
         </PerformanceMonitor>
-        
+
         {/* Stats */}
         <Stats />
       </Canvas>
     </>
+  );
+}
+
+export default function R3FDevInterface() {
+  return (
+    <BookProvider>
+      <DevContent />
+    </BookProvider>
   );
 }
 

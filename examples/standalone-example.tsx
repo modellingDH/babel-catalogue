@@ -19,7 +19,7 @@
 
 import { useEffect, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Book, Scene, useBookStore } from 'babel-catalogue';
+import { Book, Scene, useBookStore, BookProvider } from 'babel-catalogue';
 
 /**
  * Book Configuration Component
@@ -50,7 +50,7 @@ function BookConfigurator() {
     setParticlesEnabled,
     setParticleIntensity,
     openBook,
-  } = useBookStore();
+  } = useBookStore(state => state);
 
   useEffect(() => {
     // Apply all configuration values
@@ -117,7 +117,7 @@ function BookConfigurator() {
  * It sets up the React Three Fiber Canvas with appropriate camera settings
  * and includes the Book component within a Scene.
  */
-export default function StandaloneExample() {
+function ExampleContent() {
   return (
     <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0, overflow: 'hidden' }}>
       <Canvas
@@ -133,6 +133,14 @@ export default function StandaloneExample() {
       </Canvas>
       <BookConfigurator />
     </div>
+  );
+}
+
+export default function StandaloneExample() {
+  return (
+    <BookProvider>
+      <ExampleContent />
+    </BookProvider>
   );
 }
 

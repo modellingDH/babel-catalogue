@@ -6,7 +6,7 @@ import { useRef } from 'react';
 import * as THREE from 'three';
 import { Group } from 'three';
 import { useFrame } from '@react-three/fiber';
-import { useBookStore } from '../../stores/bookStore';
+import { useBookStore } from './BookContext';
 import { Page } from './Page';
 import { Cover } from './Cover';
 import { Spine } from './Spine';
@@ -15,7 +15,7 @@ import { Html } from '@react-three/drei';
 
 export function Book() {
   const bookGroupRef = useRef<Group>(null);
-  
+
   // Get state from store
   const {
     pageCount,
@@ -45,13 +45,14 @@ export function Book() {
     flippingPageIndex,
     flipProgress,
     flipDirection,
-  } = useBookStore();
-  
+    fontFamily
+  } = useBookStore(state => state);
+
   // Spine parameters - FIXED for proper book physics
   const spineWidth = 0.1;
   const spineDepth = 0.6;
   const coverThickness = 0.05;
-  
+
   // Apply transformations to book group
   useFrame(() => {
     if (bookGroupRef.current) {
@@ -62,7 +63,7 @@ export function Book() {
       bookGroupRef.current.position.set(safePosition[0], safePosition[1], safePosition[2]);
     }
   });
-  
+
   return (
     <group ref={bookGroupRef}>
       {/* Debug helpers */}
@@ -90,7 +91,7 @@ export function Book() {
           </Html>
         </>
       )}
-      
+
       {/* Spine - centered at origin */}
       <Spine
         width={spineWidth}
@@ -99,7 +100,7 @@ export function Book() {
         color={spineColor}
         pageCount={pageCount}
       />
-      
+
       {/* Covers - pivot at spine edges */}
       <Cover
         side="front"
@@ -112,6 +113,7 @@ export function Book() {
         outlineWidth={coverOutlineWidth}
         color={coverColor}
         opacity={coverOpacity}
+        fontFamily={fontFamily}
       />
       <Cover
         side="back"
@@ -124,12 +126,13 @@ export function Book() {
         outlineWidth={coverOutlineWidth}
         color={coverColor}
         opacity={coverOpacity}
+        fontFamily={fontFamily}
       />
-      
+
       {/* Back cover pages - attached to INSIDE face of back cover */}
       {/* Group at back cover pivot, pages extend inward (toward front) */}
-      <group 
-        position={[spineWidth / 2, 0, -spineDepth / 2]} 
+      <group
+        position={[spineWidth / 2, 0, -spineDepth / 2]}
         rotation={[0, backHinge, 0]}
       >
         {/* Pages positioned at inside face of cover (toward the front) */}
@@ -137,7 +140,7 @@ export function Book() {
           {Array.from({ length: currentPage }, (_, i) => {
             // Skip the page that's currently flipping forward
             if (i === flippingPageIndex && flipProgress > 0) return null;
-            
+
             return (
               <Page
                 key={`back-${i}`}
@@ -154,11 +157,11 @@ export function Book() {
           })}
         </group>
       </group>
-      
+
       {/* Front cover pages - attached to INSIDE face of front cover */}
       {/* Group at front cover pivot, pages extend inward (toward back) */}
-      <group 
-        position={[spineWidth / 2, 0, spineDepth / 2]} 
+      <group
+        position={[spineWidth / 2, 0, spineDepth / 2]}
         rotation={[0, -frontHinge, 0]}
       >
         {/* Pages positioned at inside face of cover (toward the back) */}
@@ -167,7 +170,7 @@ export function Book() {
             const pageIndex = i + currentPage;
             // Skip the page that's currently flipping (when flipping backward)
             if (pageIndex === flippingPageIndex && flipProgress > 0) return null;
-            
+
             return (
               <Page
                 key={`front-${pageIndex}`}
@@ -184,7 +187,7 @@ export function Book() {
           })}
         </group>
       </group>
-      
+
       {/* Flipping page - rendered separately with animation */}
       {flippingPageIndex !== null && flipProgress > 0 && (() => {
         // Forward: Flip from FRONT to BACK (180 to 0)
@@ -192,10 +195,10 @@ export function Book() {
         const pageRotation = flipDirection === 'forward'
           ? -frontHinge + flipProgress * (backHinge - (-frontHinge))  // 180° → 0°
           : backHinge + flipProgress * (-frontHinge - backHinge);  // 0° → 180°
-        
+
         return (
-          <group 
-            position={[spineWidth / 2, 0, 0]} 
+          <group
+            position={[spineWidth / 2, 0, 0]}
             rotation={[0, pageRotation, 0]}
           >
             {/* Flipping page with normal appearance */}
@@ -214,7 +217,7 @@ export function Book() {
           </group>
         );
       })()}
-      
+
       {/* Particles */}
       <Particles
         count={200}
@@ -225,7 +228,7 @@ export function Book() {
           depth: spineDepth
         }}
       />
-      
+
       {/* Debug: Manual test page that flips */}
       {testPageFlipAngle > 0 && (() => {
         // Calculate page rotation between the two cover angles
@@ -233,10 +236,10 @@ export function Book() {
         // 180° = front cover angle (-frontHinge)
         const progress = testPageFlipAngle / 180; // 0 to 1
         const pageRotation = backHinge + progress * (-frontHinge - backHinge);
-        
+
         return (
-          <group 
-            position={[spineWidth / 2, 0, 0]} 
+          <group
+            position={[spineWidth / 2, 0, 0]}
             rotation={[0, pageRotation, 0]}
           >
             {/* Page positioned so its EDGE is at pivot point (spine edge) */}

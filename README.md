@@ -23,19 +23,26 @@ npm install https://github.com/modellingDH/babel-catalogue/releases/download/v1.
 
 ```tsx
 import { Canvas } from '@react-three/fiber';
-import { Book, Scene, useBookStore } from 'babel-catalogue';
+import { Book, Scene, useBookStore, BookProvider } from 'babel-catalogue';
+
+function AppContent() {
+  const { openBook } = useBookStore(state => state);
+  return (
+    <Canvas camera={{ position: [6, 4, 10], fov: 45 }}>
+      <Scene>
+        <Book />
+      </Scene>
+    </Canvas>
+  );
+}
 
 function App() {
-  const { openBook, flipPage, triggerEmotion } = useBookStore();
-  
   return (
-    <div style={{ width: '100vw', height: '100vh' }}>
-      <Canvas camera={{ position: [6, 4, 10], fov: 45 }}>
-        <Scene>
-          <Book />
-        </Scene>
-      </Canvas>
-    </div>
+    <BookProvider>
+      <div style={{ width: '100vw', height: '100vh' }}>
+        <AppContent />
+      </div>
+    </BookProvider>
   );
 }
 ```

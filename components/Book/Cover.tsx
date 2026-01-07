@@ -6,20 +6,21 @@ import * as THREE from 'three';
 import { CoverProps } from '../../types/book';
 import { useCoverTexture } from '../../hooks/useCoverTexture';
 
-export function Cover({ 
-  side, 
-  width, 
+export function Cover({
+  side,
+  width,
   height,
-  hinge, 
+  hinge,
   text,
   textColor = '#c9a876',
   outlineColor = '#c9a876',
   outlineWidth = 3,
   color = '#2b1e16',
-  opacity = 1
-}: CoverProps) {
-  const texture = useCoverTexture(text, textColor, outlineColor, outlineWidth, side === 'front');
-  
+  opacity = 1,
+  fontFamily = 'Roboto'
+}: CoverProps & { fontFamily?: string }) {
+  const texture = useCoverTexture(text, textColor, outlineColor, outlineWidth, side === 'front', fontFamily);
+
   // Cover pivots at spine edge
   // Spine is centered at origin with width 0.1
   // Spine goes from -0.05 to +0.05 in X
@@ -28,22 +29,22 @@ export function Cover({
   const spineWidth = 0.1;
   const spineDepth = 0.6;
   const coverThickness = 0.05;
-  
+
   const pivotX = spineWidth / 2; // 0.05
   const pivotZ = side === 'front' ? spineDepth / 2 : -spineDepth / 2; // ±0.3
-  
+
   // Rotation direction: front cover uses negative (opens forward), back uses positive
   const hingeRotation = side === 'front' ? -hinge : hinge;
-  
+
   return (
-    <group 
-      position={[pivotX, 0, pivotZ]} 
+    <group
+      position={[pivotX, 0, pivotZ]}
       rotation={[0, hingeRotation, 0]}
     >
       {/* Cover box - plain color only */}
-      <mesh 
-        position={[width / 2, 0, 0]} 
-        castShadow 
+      <mesh
+        position={[width / 2, 0, 0]}
+        castShadow
         receiveShadow
       >
         <boxGeometry args={[width, height, coverThickness]} />
@@ -54,19 +55,19 @@ export function Cover({
           side={THREE.DoubleSide}
         />
       </mesh>
-      
+
       {/* Floating text centered on cover, offset outward from pages */}
       {texture && (
-        <mesh 
+        <mesh
           position={[
-            width / 2, 
-            0, 
-            side === 'front' 
+            width / 2,
+            0,
+            side === 'front'
               ? coverThickness / 2 + 0.01   // Front: offset in +Z (away from pages)
               : -(coverThickness / 2 + 0.01) // Back: offset in -Z (away from pages)
           ]}
           rotation={[
-            0, 
+            0,
             side === 'back' ? Math.PI : 0, // Back cover: flip 180° around Y axis
             0
           ]}

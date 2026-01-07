@@ -16,8 +16,9 @@ export { Scene } from './components/Book/Scene';
 // Export hooks
 export { useCoverTexture } from './hooks/useCoverTexture';
 
-// Export store
-export { useBookStore } from './stores/bookStore';
+// Export store - NEW Pattern
+export { BookProvider, useBookStore } from './components/Book/BookContext';
+export type { BookStore } from './stores/bookStore';
 
 // Export types
 export type {
