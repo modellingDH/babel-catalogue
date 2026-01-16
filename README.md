@@ -15,8 +15,8 @@ Babel Catalogue is available as a reusable React Three Fiber module that you can
 ### Installation
 
 ```bash
-# From GitHub Release
-npm install https://github.com/modellingDH/babel-catalogue/releases/download/v1.0.0/babel-catalogue-1.0.0.tgz
+# Install from GitHub
+npm install github:modellingDH/babel-catalogue
 ```
 
 ### Quick Start

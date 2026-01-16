@@ -17,7 +17,7 @@ Thumbs.db
 npm-debug.log*
 
 # Build outputs
-dist/
+# dist/
 build/
 *.min.js
 .next/
