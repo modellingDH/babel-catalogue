@@ -17,6 +17,7 @@ export interface BookConfig {
   // Transformations
   spineRotation: number;
   tilt: number;
+  lean: number;
   scale: number;
   position: [number, number, number]; // Book position in 3D space [x, y, z]
 
@@ -55,6 +56,7 @@ export interface BookConfig {
   flipDirection: 'forward' | 'backward' | null; // Direction of current flip animation
   isFlippingContinuously: boolean; // Continuous flip mode
   continuousDirection: 'forward' | 'backward' | null; // Direction of continuous flip
+  savedState?: Partial<BookConfig> | null;
 }
 
 export interface PageProps {

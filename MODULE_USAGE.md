@@ -450,7 +450,6 @@ For complete API documentation, see [API.md](./API.md)
 
 See the included Next.js demo pages for working examples:
 - `pages/index.tsx` - Full interactive demo with Leva controls
-- `pages/r3f-dev.tsx` - Development interface
 
 ## Support
 

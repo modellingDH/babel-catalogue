@@ -9,20 +9,21 @@ export function Scene({ children }: { children: React.ReactNode }) {
     <>
       {/* Lights - matching concept.html */}
       <ambientLight intensity={0.8} />
-      <pointLight 
-        position={[5, 5, 5]} 
-        intensity={1} 
+      <pointLight
+        position={[5, 5, 5]}
+        intensity={1}
         distance={50}
         color="#00ffcc"
       />
-      
+
       {/* Camera controls */}
-      <OrbitControls 
+      <OrbitControls
         makeDefault
         enableDamping
         dampingFactor={0.05}
+        enableRotate={false}
       />
-      
+
       {/* Book content */}
       {children}
     </>

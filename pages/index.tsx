@@ -1,6 +1,6 @@
 /**
  * R3F Dev Interface
- * New development interface using React Three Fiber
+ * Main development interface using React Three Fiber
  */
 import { Canvas } from '@react-three/fiber';
 import { Leva, useControls, button } from 'leva';
@@ -25,6 +25,7 @@ function DevContent() {
     setDimensions,
     setSpineRotation,
     setTilt,
+    setLean,
     setScale,
     setFrontHinge,
     setBackHinge,
@@ -34,10 +35,11 @@ function DevContent() {
     setGlowIntensity,
     setCoverColor,
     setCoverOpacity,
-    setSpineColor,
     setFrontCoverText,
     setBackCoverText,
     setCoverTextColor,
+    setCoverOutlineColor,
+    setCoverOutlineWidth,
     setParticlesEnabled,
     setParticleIntensity,
     setDebug,
@@ -78,22 +80,29 @@ function DevContent() {
     },
 
     // Transformations
-    spineRotation: {
-      value: 0.5,
-      min: -Math.PI,
-      max: Math.PI,
-      step: 0.01,
-      onChange: (v) => setSpineRotation(v)
+    'Spine Twist (Y)': {
+      value: (bookState.spineRotation * 180) / Math.PI,
+      min: -180,
+      max: 180,
+      step: 1,
+      onChange: (v) => setSpineRotation((v * Math.PI) / 180)
     },
-    tilt: {
-      value: 0.2,
-      min: -1.5,
-      max: 1.5,
-      step: 0.01,
-      onChange: (v) => setTilt(v)
+    'Tilt (Z)': {
+      value: (bookState.tilt * 180) / Math.PI,
+      min: -90,
+      max: 90,
+      step: 1,
+      onChange: (v) => setTilt((v * Math.PI) / 180)
+    },
+    'Lean (X)': {
+      value: (bookState.lean || 0) * 180 / Math.PI,
+      min: -180,
+      max: 180,
+      step: 1,
+      onChange: (v) => setLean((v * Math.PI) / 180)
     },
     scale: {
-      value: 1,
+      value: bookState.scale,
       min: 0.5,
       max: 2,
       step: 0.01,
@@ -162,10 +171,6 @@ function DevContent() {
       step: 0.1,
       onChange: (v) => setCoverOpacity(v)
     },
-    spineColor: {
-      value: '#1a0f0a',
-      onChange: (v) => setSpineColor(v)
-    },
   });
 
   const text = useControls('Cover Text', {
@@ -173,6 +178,19 @@ function DevContent() {
       value: '#c9a876',
       label: 'Text Color',
       onChange: (v) => setCoverTextColor(v)
+    },
+    coverOutlineColor: {
+      value: '#c9a876',
+      label: 'Outline Color',
+      onChange: (v) => setCoverOutlineColor(v)
+    },
+    coverOutlineWidth: {
+      value: 3,
+      min: 0,
+      max: 10,
+      step: 0.5,
+      label: 'Outline Width',
+      onChange: (v) => setCoverOutlineWidth(v)
     },
 
     frontCoverText: {
@@ -235,6 +253,10 @@ function DevContent() {
     'Continuous Backward': button(
       () => toggleContinuousFlip('backward')
     ),
+
+    // Placement
+    'Put Down (Flat)': button(() => bookState.putDownBook(1500)),
+    'Restore (Open)': button(() => bookState.restoreBook(1500)),
   });
 
   // Emotions (from README concept)
@@ -254,7 +276,7 @@ function DevContent() {
   return (
     <>
       <Head>
-        <title>Babel Catalogue - R3F Dev Interface</title>
+        <title>Babel Catalogue - Dev Interface</title>
       </Head>
 
       {/* Leva GUI */}
@@ -338,7 +360,7 @@ function DevContent() {
             position: [0, 0, 0], // Book position in 3D space
             scale: bookState.scale,
             // Camera position
-            cameraPosition: [6, 4, 10],
+            cameraPosition: [0, 3, 12],
             cameraFov: 45,
             // Cover hinges
             frontHinge: bookState.frontHinge,
@@ -349,7 +371,6 @@ function DevContent() {
             glowIntensity: bookState.glowIntensity,
             coverColor: bookState.coverColor,
             coverOpacity: bookState.coverOpacity,
-            spineColor: bookState.spineColor,
             frontCoverText: bookState.frontCoverText,
             backCoverText: bookState.backCoverText,
             coverTextColor: bookState.coverTextColor,
@@ -361,7 +382,7 @@ function DevContent() {
 
       {/* 3D Canvas */}
       <Canvas
-        camera={{ position: [6, 4, 10], fov: 45 }}
+        camera={{ position: [0, 3, 12], fov: 45 }}
         shadows
         style={{ width: '100vw', height: '100vh' }}
       >
@@ -372,6 +393,7 @@ function DevContent() {
           </Scene>
         </PerformanceMonitor>
 
+        {/* Stats */}
         <Stats />
       </Canvas>
     </>
@@ -385,4 +407,3 @@ export default function R3FDevInterface() {
     </BookProvider>
   );
 }
-

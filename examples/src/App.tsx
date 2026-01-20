@@ -230,7 +230,7 @@ function AppContent() {
   return (
     <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0, overflow: 'hidden' }}>
       <Canvas
-        camera={{ position: [6, 4, 10], fov: 45 }}
+        camera={{ position: [0, 3, 12], fov: 45 }}
         gl={{ antialias: true, alpha: true }}
         style={{ background: '#000000' }}
         frameloop="always"

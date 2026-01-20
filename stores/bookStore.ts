@@ -49,6 +49,7 @@ interface BookState extends BookConfig {
   setDimensions: (dimensions: Partial<BookDimensions>) => void;
   setSpineRotation: (rotation: number) => void;
   setTilt: (tilt: number) => void;
+  setLean: (lean: number) => void;
   setScale: (scale: number) => void;
   setPosition: (position: [number, number, number]) => void;
   setFrontHinge: (hinge: number) => void;
@@ -76,6 +77,10 @@ interface BookState extends BookConfig {
   flipPages: (count: number, direction: 'forward' | 'backward', duration?: number) => void;
   triggerEmotion: (emotion: 'focus' | 'drift' | 'paradox') => void;
   morphMaterial: (material: 'leather' | 'metal' | 'glass') => void;
+  putDownBook: (duration?: number) => void;
+  restoreBook: (duration?: number) => void;
+  animateTo: (target: Partial<BookState>, duration?: number) => void;
+  savedState?: Partial<BookConfig> | null;
 }
 
 const initialState: BookConfig = {
@@ -88,9 +93,10 @@ const initialState: BookConfig = {
     depth: 0.6, // Will be calculated from pageCount
   },
 
-  // Transformations
-  spineRotation: 0.5,
-  tilt: 0.2,
+  // Transformations (Reading Position: Y=0°, Z=0°, X=0°)
+  spineRotation: 0,
+  tilt: 0,
+  lean: 0,
   scale: 1,
   position: [0, 0, 0] as [number, number, number],
 
@@ -129,6 +135,7 @@ const initialState: BookConfig = {
   flipDirection: null,
   isFlippingContinuously: false,
   continuousDirection: null,
+  savedState: null,
 };
 
 // ... types remain the same, just exporting the creator function now
@@ -306,6 +313,7 @@ export const createBookStore = (initProps?: Partial<BookConfig>) => {
 
     setSpineRotation: (rotation) => set({ spineRotation: rotation }),
     setTilt: (tilt) => set({ tilt: tilt }),
+    setLean: (lean) => set({ lean: lean }),
     setScale: (scale) => set({ scale: scale }),
     setPosition: (position) => set({ position: position }),
     setFrontHinge: (hinge) => set({ frontHinge: hinge }),
@@ -617,6 +625,228 @@ export const createBookStore = (initProps?: Partial<BookConfig>) => {
           animateValue(current.particleIntensity, 1.0, 500, (v) => set({ particleIntensity: v }), easeInOutCubic);
           break;
       }
+    },
+
+    /**
+     * Put down book - close, lay flat, and center
+     */
+    putDownBook: (duration = 1500) => {
+      const current = get();
+      const width = current.dimensions.width;
+
+      // 1. Close the book
+      get().closeBook(duration * 0.7);
+
+      // Save current state for restoration
+      set({
+        savedState: {
+          spineRotation: current.spineRotation,
+          tilt: current.tilt,
+          lean: current.lean,
+          position: current.position,
+          frontHinge: current.frontHinge,
+          backHinge: current.backHinge,
+        }
+      });
+
+      // 2. Animate to flat position (lying on back cover)
+      // Rotate -90 on X (lean) to lie flat
+      // Shift X by -width/2 to center it (since pivot is at spine)
+
+      const targetLean = -Math.PI / 2;
+      const targetX = -width / 2;
+      // Calculate target Y to rest on grid (which is at -height/2)
+      // Book when flat has height = depth. It is centered at Y=targetY
+      // Bottom face is at targetY - depth/2. We want bottom face at -height/2
+      // targetY - depth/2 = -height/2  =>  targetY = -height/2 + depth/2
+      const targetY = -current.dimensions.height / 2 + current.dimensions.depth / 2;
+      const targetTilt = 0;
+      const targetRotation = 0;
+
+      // Animate Position (X and Y)
+      animateValue(
+        0, // Progress 0 to 1
+        1,
+        duration,
+        (progress) => {
+          // We interpolate manually to handle both X and Y
+          // X: startX -> targetX
+          // Y: startY -> targetY
+          const startX = current.position[0];
+          const startY = current.position[1];
+
+          // Easing is applied by the animateValue wrapper to 'progress'?
+          // Wait, animateValue interpolates a single value.
+          // Better to use two animateValues or one acting on a progress proxy.
+          // Let's us separate animateValues for simplicity and consistency with existing code.
+        },
+        easeInOutCubic
+      );
+
+      // Revised implementation using separate animators for clarity
+      // Animate Position X
+      animateValue(
+        current.position[0],
+        targetX,
+        duration,
+        (val) => {
+          const currentPos = get().position;
+          set({ position: [val, currentPos[1], currentPos[2]] });
+        },
+        easeInOutCubic
+      );
+
+      // Animate Position Y to drop down
+      animateValue(
+        current.position[1],
+        targetY,
+        duration,
+        (val) => {
+          const currentPos = get().position;
+          set({ position: [currentPos[0], val, currentPos[2]] });
+        },
+        easeInOutCubic
+      );
+
+      animateValue(
+        current.lean || 0,
+        targetLean,
+        duration,
+        (value) => set({ lean: value }),
+        easeInOutCubic
+      );
+
+      animateValue(
+        current.tilt,
+        targetTilt,
+        duration,
+        (value) => set({ tilt: value }),
+        easeInOutCubic
+      );
+
+      animateValue(
+        current.spineRotation,
+        targetRotation,
+        duration,
+        (value) => set({ spineRotation: value }),
+        easeInOutCubic
+      );
+    },
+
+    /**
+     * Restore book - return to reading position and open
+     */
+    restoreBook: (duration = 1500) => {
+      const current = get();
+
+      // 1. Animate back to saved position or default reading position
+      const saved = current.savedState;
+
+      const targetTilt = saved?.tilt ?? 0;
+      const targetRotation = saved?.spineRotation ?? 0;
+      const targetLean = saved?.lean ?? 0;
+      const targetX = saved?.position?.[0] ?? 0;
+      const targetY = saved?.position?.[1] ?? 0;
+
+      // Restore Position X
+      animateValue(
+        current.position[0],
+        targetX,
+        duration,
+        (val) => {
+          const currentPos = get().position;
+          set({ position: [val, currentPos[1], currentPos[2]] });
+        },
+        easeInOutCubic
+      );
+
+      // Restore Position Y
+      animateValue(
+        current.position[1],
+        targetY,
+        duration,
+        (val) => {
+          const currentPos = get().position;
+          set({ position: [currentPos[0], val, currentPos[2]] });
+        },
+        easeInOutCubic
+      );
+
+      animateValue(
+        current.lean || 0,
+        targetLean,
+        duration,
+        (value) => set({ lean: value }),
+        easeInOutCubic
+      );
+
+      animateValue(
+        current.tilt,
+        targetTilt,
+        duration,
+        (value) => set({ tilt: value }),
+        easeInOutCubic
+      );
+
+      animateValue(
+        current.spineRotation,
+        targetRotation,
+        duration,
+        (value) => set({ spineRotation: value }),
+        easeInOutCubic
+      );
+
+      // 2. Restore Hinges (Open/Closed state)
+      // If we have a saved state, animate back to it.
+      // If no saved state, we default to OPEN (Math.PI * 0.4) as per original behavior.
+
+      const defaultOpenAngle = Math.PI * 0.4;
+      const targetFrontHinge = saved?.frontHinge ?? defaultOpenAngle;
+      const targetBackHinge = saved?.backHinge ?? defaultOpenAngle;
+
+      setTimeout(() => {
+        animateValue(
+          get().frontHinge,
+          targetFrontHinge,
+          duration * 0.7,
+          (value) => set({ frontHinge: value }),
+          easeInOutCubic
+        );
+
+        animateValue(
+          get().backHinge,
+          targetBackHinge,
+          duration * 0.7,
+          (value) => set({ backHinge: value }),
+          easeInOutCubic
+        );
+      }, duration * 0.3);
+    },
+
+    /**
+     * Generic animation function
+     * Animates any subset of numeric state properties
+     */
+    animateTo: (targetState: Partial<BookState>, duration = 1000) => {
+      const current = get();
+
+      Object.keys(targetState).forEach((key) => {
+        const targetValue = targetState[key as keyof BookState];
+        const currentValue = current[key as keyof BookState];
+
+        // Only animate if both are numbers
+        if (typeof targetValue === 'number' && typeof currentValue === 'number') {
+          // Find the setter for this key if it exists, or just use generic setState
+          // Since we don't have a map of key -> setter, we just set the state directly
+          animateValue(
+            currentValue,
+            targetValue,
+            duration,
+            (value) => set({ [key]: value } as Partial<BookState>),
+            easeInOutCubic
+          );
+        }
+      });
     },
   }));
 };
