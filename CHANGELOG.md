@@ -5,6 +5,16 @@ All notable changes to the Babel Catalogue module will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-01-20
+
+### Changed
+- Promoted development interface to main view (`pages/index.tsx`).
+- Refined coordinate system and rotation order (Y-Z-X) for intuitive control.
+- Updated default camera position for better frontal perspective.
+- Enhanced `putDownBook` and `restoreBook` animations with state persistence.
+- Added `useBookControls` hook for external animation control.
+- Removed legacy documentation and unused files.
+
 ## [1.0.0] - 2025-12-22
 
 ### Added
